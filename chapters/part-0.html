@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Part 0 · 为什么需要了解 Agent —— AI Agent 权威指南</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <meta name="description" content="面向产品经理、技术负责人与决策者的 Agent 入门：Agent 能解决什么问题、不能解决什么问题、团队需要哪些准备。">
+</head>
+<body>
+  <nav class="sidebar">
+    <div class="sidebar__brand">
+      <h2>AI Agent<br>权威指南</h2>
+      <span class="sidebar__version">v0.1 · 前 5 章</span>
+    </div>
+    <ul class="sidebar__nav">
+      <li><a href="/" class="nav-item">序章</a></li>
+      <li class="nav-section">Part 0 · 决策者视角</li>
+      <li><a href="/chapters/part-0.html" class="nav-item nav-item--active">Part 0 为什么需要了解 Agent</a></li>
+      <li class="nav-section">第一部分 · 基础</li>
+      <li><a href="/chapters/chapter-01.html" class="nav-item">第 1 章 什么是 AI Agent</a></li>
+      <li><a href="/chapters/chapter-02.html" class="nav-item">第 2 章 Agent 架构通用模式</a></li>
+      <li><a href="/chapters/chapter-03.html" class="nav-item">第 3 章 记忆系统</a></li>
+      <li><a href="/chapters/chapter-04.html" class="nav-item">第 4 章 工具使用与函数调用</a></li>
+      <li class="nav-section">更多章节</li>
+      <li><span class="nav-item nav-item--disabled">第 5–21 章 · 连载中</span></li>
+    </ul>
+    <div class="sidebar__footer">
+      <a href="https://github.com/phoenix1983413/ai-agent-guide" target="_blank" rel="noopener">GitHub 仓库</a>
+    </div>
+  </nav>
+
+  <main class="content">
+    <article class="chapter">
+      <header class="chapter__header">
+        <span class="chapter__badge">Part 0</span>
+        <h1 class="chapter__title">为什么需要了解 Agent</h1>
+        <p class="chapter__subtitle">面向产品经理、技术负责人与决策者</p>
+      </header>
+
+      <section class="chapter__body">
+        <h2>Agent 不是下一个 Chatbot</h2>
+        <p>过去两年，绝大多数组织对「AI 能力」的想象停留在问答、摘要、翻译。大模型把这些事情做到了可用，但真正拉开差距的是<strong>让 AI 自主行动</strong>——读取数据、调用工具、修改系统、等待反馈、再调整策略。</p>
+        <p>这就是 Agent 的本质：<strong>一个能感知环境、制定计划、执行动作、观察结果并自我修正的闭环系统。</strong></p>
+
+        <h2>Agent 能解决什么问题</h2>
+        <ul>
+          <li><strong>把「人脑里的操作手册」变成自动化流程</strong>：查数 → 制表 → 发邮件，过去需要人串联的工具，现在 Agent 串联。</li>
+          <li><strong>在长链条任务里保持上下文</strong>：多步骤、跨系统、需要中间判断的任务，Chatbot 会忘，Agent 有记忆。</li>
+          <li><strong>7×24 值守，但只在必要时打扰人</strong>：监控、巡检、异常报警，Agent 可以一直跑，出事才找你。</li>
+          <li><strong>把专家经验沉淀成可复用策略</strong>：高级工程师的排查思路、客服的应对流程，都可以编码成 Agent 策略。</li>
+        </ul>
+
+        <h2>Agent 不能解决什么问题</h2>
+        <ul>
+          <li><strong>没有明确目标的任务</strong>：「帮我搞搞那个数据」— 模糊输入只能得到随机输出。</li>
+          <li><strong>没有稳定工具层的系统</strong>：Agent 需要可调用的 API、可读的数据库、可写的工单系统。工具越规范，Agent 越可靠。</li>
+          <li><strong>对安全性要求极高、但还没有权限模型的场景</strong>：Agent 权限最小化是必修课，不是可选项。</li>
+          <li><strong>幻觉风险零容忍的场景</strong>：医疗诊断、司法认定、金融风控——在这些领域，Agent 目前只能是「辅助」，不能是「执行」。</li>
+        </ul>
+
+        <h2>三类团队，三种起步方式</h2>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>团队类型</th>
+              <th>推荐起步</th>
+              <th>预计见到价值的时间</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>有研发能力的团队</strong></td>
+              <td>从第 1 章的最小 Agent 开始，1–2 周内内部跑通一个原型</td>
+              <td>2–4 周</td>
+            </tr>
+            <tr>
+              <td><strong>有业务场景但缺工程资源</strong></td>
+              <td>先用 CrewAI / AutoGen 等框架搭 demo，验证 ROI 后再投入自研</td>
+              <td>1–3 个月</td>
+            </tr>
+            <tr>
+              <td><strong>纯决策层</strong></td>
+              <td>读 Part 0 + 第 1 章建立判断力，重点看「Agent 能力光谱」和「三类团队起步方式」</td>
+              <td>1 天</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h2>你需要准备什么</h2>
+        <ul>
+          <li><strong>至少一个可调用的工具层</strong>：数据库、API、文档系统、IM——越规范越好。</li>
+          <li><strong>一个明确的最小场景</strong>：不要一开始就想造「万能助手」，先解决一个具体痛点。</li>
+          <li><strong>接受不完美的心理预期</strong>：Agent 会犯错，会卡住，会需要人工兜底。把它当一个「实习生」而不是「圣贤」。</li>
+          <li><strong>灰度发布的机制</strong>：先给 5% 的流量或一个内部团队用，跑通反馈循环再放大。</li>
+        </ul>
+
+        <h2>本章小结</h2>
+        <p>Agent 是「能自主行动的 AI」，不是 Chatbot 的升级版，而是一个新品类。它的价值在<strong>多步骤、跨系统、需要持续观察和调整</strong>的任务里最明显。落地的前提是：有明确场景、有可调用工具、有权限模型、有灰度机制。</p>
+
+        <div class="chapter__nav">
+          <a href="/" class="chapter__nav-link">← 序章</a>
+          <a href="/chapters/chapter-01.html" class="chapter__nav-link">第 1 章 什么是 AI Agent →</a>
+        </div>
+      </section>
+    </article>
+  </main>
+
+  <script src="/assets/js/main.js" defer></script>
+</body>
+</html>

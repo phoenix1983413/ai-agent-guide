@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>第 2 章 Agent 架构通用模式 —— AI Agent 权威指南</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <meta name="description" content="Agent 的四层架构（感知/大脑/执行/记忆）、模块解耦、同步与异步、容错降级。含架构图与双语言示例。">
+</head>
+<body>
+  <nav class="sidebar">
+    <div class="sidebar__brand">
+      <h2>AI Agent<br>权威指南</h2>
+      <span class="sidebar__version">v0.1 · 前 5 章</span>
+    </div>
+    <ul class="sidebar__nav">
+      <li><a href="/" class="nav-item">序章</a></li>
+      <li class="nav-section">Part 0 · 决策者视角</li>
+      <li><a href="/chapters/part-0.html" class="nav-item">Part 0 为什么需要了解 Agent</a></li>
+      <li class="nav-section">第一部分 · 基础</li>
+      <li><a href="/chapters/chapter-01.html" class="nav-item">第 1 章 什么是 AI Agent</a></li>
+      <li><a href="/chapters/chapter-02.html" class="nav-item nav-item--active">第 2 章 Agent 架构通用模式</a></li>
+      <li><a href="/chapters/chapter-03.html" class="nav-item">第 3 章 记忆系统</a></li>
+      <li><a href="/chapters/chapter-04.html" class="nav-item">第 4 章 工具使用与函数调用</a></li>
+      <li class="nav-section">更多章节</li>
+      <li><span class="nav-item nav-item--disabled">第 5–21 章 · 连载中</span></li>
+    </ul>
+    <div class="sidebar__footer">
+      <a href="https://github.com/phoenix1983413/ai-agent-guide" target="_blank" rel="noopener">GitHub 仓库</a>
+    </div>
+  </nav>
+
+  <main class="content">
+    <article class="chapter">
+      <header class="chapter__header">
+        <span class="chapter__badge">第 2 章</span>
+        <h1 class="chapter__title">Agent 架构通用模式</h1>
+        <p class="chapter__subtitle">四层架构、模块解耦、同步与异步、容错降级</p>
+      </header>
+
+      <section class="chapter__body">
+        <h2>2.1 经典架构：感知层、大脑层、执行层、记忆层</h2>
+        <p>绝大多数生产级 Agent 都可以拆成四层。理解这四层，你才能判断别人的架构设计是否合理，也才能对自己的系统做模块化拆分。</p>
+        <div class="mermaid">
+graph TD
+    A[感知层<br>Input: 用户消息 / 系统事件 / 工具返回] --> B[大脑层<br>LLM / 规划器 / 决策器]
+    B --> C[执行层<br>Tool Registry → 调用 → 观测]
+    C --> D[记忆层<br>短期上下文 + 长期记忆]
+    D --> B
+    C --> A
+    style A fill:#1e293b,stroke:#22d3ee,color:#fff
+    style B fill:#1e3a5f,stroke:#22d3ee,color:#fff
+    style C fill:#1e293b,stroke:#22d3ee,color:#fff
+    style D fill:#1e293b,stroke:#22d3ee,color:#fff
+        </div>
+
+        <h2>2.2 模块解耦原则</h2>
+        <p>四层之间通过<strong>明确定义的接口</strong>通信，而不是共享可变状态。具体做法：</p>
+        <ul>
+          <li><strong>工具注册表（Tool Registry）</strong>：所有工具统一注册，Agent 不硬编码任何工具名。</li>
+          <li><strong>提示词模板（Prompt Template）</strong>：系统提示、少样本示例、输出格式定义，全部外部化为模板文件。</li>
+          <li><strong>状态管理（State Manager）</strong>：Agent 的执行状态（当前任务、历史步骤、中间结果）由独立状态机管理，不散落在各处。</li>
+        </ul>
+
+        <h2>2.3 同步 vs 异步执行模型</h2>
+        <p>简单任务用同步：用户发一条消息，Agent 跑完返回结果。复杂任务用异步：Agent 在后台执行，用户随时可以查状态、插话、取消。</p>
+        <table class="table">
+          <thead>
+            <tr><th></th><th>同步</th><th>异步</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>用户体验</td><td>阻塞等待</td><td>即时响应 + 进度推送</td></tr>
+            <tr><td>实现复杂度</td><td>低</td><td>中高（需要任务队列、状态存储）</td></tr>
+            <tr><td>适用场景</td><td>单轮问答、简单工具调用</td><td>长任务、多步骤、需要人工介入</td></tr>
+          </tbody>
+        </table>
+
+        <h2>2.4 容错与降级</h2>
+        <p>生产级 Agent 必须假设一切都会出错：模型超时、工具返回异常、网络抖动、用户中途取消。核心策略：</p>
+        <ul>
+          <li><strong>超时</strong>：每个 LLM 调用和工具调用都设硬超时，避免无限挂起。</li>
+          <li><strong>重试</strong>：瞬态错误（网络、限流）自动重试，用指数退避。</li>
+          <li><strong>人工接管</strong>：超过 N 步失败，或检测到高风险操作，自动升级给人。</li>
+          <li><strong>降级</strong>：LLM 不可用时，能否退化成规则引擎或硬编码流程？</li>
+        </ul>
+
+        <h2>本章产出：通用架构骨架（双语言）</h2>
+        <p>以下是一个最小但结构完整的 Agent 骨架，体现四层解耦。</p>
+
+        <h3>Python 版本</h3>
+        <pre><code class="language-python">from __future__ import annotations
+from abc import ABC, abstractmethod
+from dataclasses import dataclass, field
+from typing import Any
+import openai
+
+# ---- 数据层 ----
+@dataclass
+class Message:
+    role: str
+    content: str
+
+@dataclass
+class AgentState:
+    history: list[Message] = field(default_factory=list)
+    context: dict[str, Any] = field(default_factory=dict)
+
+# ---- 工具注册表 ----
+class ToolRegistry:
+    def __init__(self):
+        self._tools: dict[str, callable] = {}
+
+    def register(self, name: str):
+        def decorator(fn):
+            self._tools[name] = fn
+            return fn
+        return decorator
+
+    def call(self, name: str, **kwargs) -> str:
+        if name not in self._tools:
+            return f"ERROR: unknown tool {name}"
+        try:
+            return str(self._tools[name](**kwargs))
+        except Exception as e:
+            return f"ERROR: {e}"
+
+registry = ToolRegistry()
+
+@registry.register("echo")
+def echo(text: str) -> str:
+    return f"[echo] {text}"
+
+# ---- 大脑层 ----
+class Brain:
+    def __init__(self, model="gpt-4o-mini"):
+        self.client = openai.OpenAI()
+        self.model = model
+
+    def decide(self, state: AgentState, tools_schema: list[dict]) -> tuple[str | None, str]:
+        resp = self.client.chat.completions.create(
+            model=self.model,
+            messages=[{"role": m.role, "content": m.content} for m in state.history],
+            tools=tools_schema,
+            tool_choice="auto",
+        )
+        msg = resp.choices[0].message
+        if msg.tool_calls:
+            return msg.tool_calls[0].function.name, msg.tool_calls[0].function.arguments
+        return None, msg.content or ""
+
+# ---- Agent 主循环 ----
+class Agent:
+    def __init__(self):
+        self.brain = Brain()
+        self.tools_schema = [
+            {"type": "function", "function": {
+                "name": name, "description": fn.__doc__ or "",
+                "parameters": {"type": "object", "properties": {}, "required": []}
+            }} for name, fn in registry._tools.items()
+        ]
+
+    def step(self, state: AgentState) -> AgentState:
+        tool_name, args = self.brain.decide(state, self.tools_schema)
+        if tool_name:
+            import json
+            result = registry.call(tool_name, **json.loads(args))
+            state.history.append(Message("assistant", f"调用工具 {tool_name}"))
+            state.history.append(Message("tool", result))
+        else:
+            state.history.append(Message("assistant", args))
+        return state
+
+# 使用示例
+agent = Agent()
+state = AgentState(history=[Message("user", "用 echo 工具说 hello")])
+for _ in range(3):
+    state = agent.step(state)
+    print([m.content for m in state.history[-2:]])</code></pre>
+
+        <h3>TypeScript 版本</h3>
+        <pre><code class="language-typescript">import OpenAI from "openai";
+
+// ---- 数据层 ----
+interface Message { role: "user" | "assistant" | "tool"; content: string; }
+interface AgentState { history: Message[]; context: Record<string, unknown>; }
+
+// ---- 工具注册表 ----
+type ToolFn = (...args: unknown[]) => string | Promise<string>;
+class ToolRegistry {
+  private tools = new Map<string, ToolFn>();
+  register(name: string, fn: ToolFn) { this.tools.set(name, fn); return this; }
+  async call(name: string, ...args: any[]) {
+    const fn = this.tools.get(name);
+    if (!fn) return `ERROR: unknown tool ${name}`;
+    try { return await fn(...args); }
+    catch (e: any) { return `ERROR: ${e.message}`; }
+  }
+}
+const registry = new ToolRegistry();
+registry.register("echo", (text: string) => `[echo] ${text}`);
+
+// ---- 大脑层 ----
+class Brain {
+  constructor(private client: OpenAI, private model = "gpt-4o-mini") {}
+  async decide(state: AgentState, toolSchemas: any[]) {
+    const resp = await this.client.chat.completions.create({
+      model: this.model,
+      messages: state.history,
+      tools: toolSchemas,
+      tool_choice: "auto",
+    });
+    const msg = resp.choices[0].message;
+    if (msg.tool_calls?.length) {
+      const tc = msg.tool_calls[0];
+      return { name: tc.function.name, args: tc.function.arguments };
+    }
+    return { name: null as string | null, args: msg.content ?? "" };
+  }
+}
+
+// ---- Agent 主循环 ----
+class Agent {
+  private brain: Brain;
+  private toolSchemas = [
+    { type: "function", function: { name: "echo", description: "回显文本", parameters: { type: "object", properties: {}, required: [] } } as any },
+  ];
+  constructor() { this.brain = new Brain(new OpenAI()); }
+
+  async step(state: AgentState): Promise<AgentState> {
+    const { name, args } = await this.brain.decide(state, this.toolSchemas);
+    if (name) {
+      const params = JSON.parse(args);
+      const result = await registry.call(name, ...Object.values(params));
+      state.history.push({ role: "assistant", content: `调用工具 ${name}` });
+      state.history.push({ role: "tool", content: result });
+    } else {
+      state.history.push({ role: "assistant", content: args });
+    }
+    return state;
+  }
+}
+
+// 使用示例
+(async () => {
+  const agent = new Agent();
+  const state: AgentState = { history: [{ role: "user", content: "用 echo 工具说 hello" }], context: {} };
+  for (let i = 0; i < 3; i++) {
+    state.history = await agent.step(state);
+    console.log(state.history.slice(-2).map(m => m.content));
+  }
+})();</code></pre>
+
+        <div class="chapter__nav">
+          <a href="/chapters/chapter-01.html" class="chapter__nav-link">← 第 1 章</a>
+          <a href="/chapters/chapter-03.html" class="chapter__nav-link">第 3 章 记忆系统 →</a>
+        </div>
+      </section>
+    </article>
+  </main>
+
+  <script src="/assets/js/main.js" defer></script>
+</body>
+</html>

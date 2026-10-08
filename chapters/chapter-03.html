@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>第 3 章 记忆系统 —— AI Agent 权威指南</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <meta name="description" content="Agent 记忆分层设计：工作记忆、情景记忆、语义记忆、程序记忆。上下文窗口管理、长期存储选型、记忆演化与多用户隔离。">
+</head>
+<body>
+  <nav class="sidebar">
+    <div class="sidebar__brand">
+      <h2>AI Agent<br>权威指南</h2>
+      <span class="sidebar__version">v0.1 · 前 5 章</span>
+    </div>
+    <ul class="sidebar__nav">
+      <li><a href="/" class="nav-item">序章</a></li>
+      <li class="nav-section">Part 0 · 决策者视角</li>
+      <li><a href="/chapters/part-0.html" class="nav-item">Part 0 为什么需要了解 Agent</a></li>
+      <li class="nav-section">第一部分 · 基础</li>
+      <li><a href="/chapters/chapter-01.html" class="nav-item">第 1 章 什么是 AI Agent</a></li>
+      <li><a href="/chapters/chapter-02.html" class="nav-item">第 2 章 Agent 架构通用模式</a></li>
+      <li><a href="/chapters/chapter-03.html" class="nav-item nav-item--active">第 3 章 记忆系统</a></li>
+      <li><a href="/chapters/chapter-04.html" class="nav-item">第 4 章 工具使用与函数调用</a></li>
+      <li class="nav-section">更多章节</li>
+      <li><span class="nav-item nav-item--disabled">第 5–21 章 · 连载中</span></li>
+    </ul>
+    <div class="sidebar__footer">
+      <a href="https://github.com/phoenix1983413/ai-agent-guide" target="_blank" rel="noopener">GitHub 仓库</a>
+    </div>
+  </nav>
+
+  <main class="content">
+    <article class="chapter">
+      <header class="chapter__header">
+        <span class="chapter__badge">第 3 章</span>
+        <h1 class="chapter__title">记忆系统</h1>
+        <p class="chapter__subtitle">分层设计、上下文管理、长期存储选型、记忆演化与多用户隔离</p>
+      </header>
+
+      <section class="chapter__body">
+        <h2>3.1 记忆分层：工作记忆 / 情景记忆 / 语义记忆 / 程序记忆</h2>
+        <p>受认知科学启发，Agent 记忆通常分为四层：</p>
+        <ul>
+          <li><strong>工作记忆（Working Memory）</strong>：当前对话的上下文窗口，容量有限、易失。</li>
+          <li><strong>情景记忆（Episodic Memory）</strong>：「某月某日，用户问了 X，Agent 做了 Y」——具体事件的日志。</li>
+          <li><strong>语义记忆（Semantic Memory）</strong>：「用户喜欢简洁的回答」「项目 X 的数据库地址是 Y」——抽象出的稳定事实。</li>
+          <li><strong>程序记忆（Procedural Memory）</strong>：Agent 自己总结出的最佳实践、常用模板、工具调用模式。</li>
+        </ul>
+
+        <h2>3.2 短期上下文窗口的管理策略</h2>
+        <p>LLM 的上下文窗口是有限资源。三种主流管理策略：</p>
+        <ul>
+          <li><strong>滑动窗口（Sliding Window）</strong>：保留最近 N 条消息，丢弃更早的。实现简单，但会丢关键信息。</li>
+          <li><strong>压缩（Compression）</strong>：用 LLM 把旧消息总结成摘要，腾出空间。适合长对话。</li>
+          <li><strong>分层（Tiered）</strong>：最近的消息原样保留，较早的消息自动降级成摘要，更早的进长期记忆。</li>
+        </ul>
+
+        <h2>3.3 长期记忆的存储选型</h2>
+        <table class="table">
+          <thead>
+            <tr><th>存储类型</th><th>优势</th><th>劣势</th><th>适用场景</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>向量库（Pinecone / Weaviate / pgvector）</td><td>语义检索最自然</td><td>精确查询弱、成本高</td><td>非结构化知识、经验片段</td></tr>
+            <tr><td>结构化数据库（PostgreSQL）</td><td>事务、索引、多租户成熟</td><td>语义检索弱</td><td>用户配置、任务状态、元数据</td></tr>
+            <tr><td>图数据库（Neo4j）</td><td>关系推理强</td><td>学习曲线陡</td><td>实体关系、知识图谱</td></tr>
+            <tr><td>对象存储 + 元数据索引</td><td>便宜、无限容量</td><td>检索延迟高</td><td>日志归档、审计记录</td></tr>
+          </tbody>
+        </table>
+        <p><strong>工程实践</strong>：多数场景用「pgvector（语义检索）+ PostgreSQL（结构化）」组合足够，不必一上来就上图数据库。</p>
+
+        <h2>3.4 记忆演化：遗忘曲线、重要性评分、冲突消解</h2>
+        <p>Agent 不能无限堆积记忆，需要主动管理：</p>
+        <ul>
+          <li><strong>遗忘曲线</strong>：越久远的记忆权重越低，自然衰减。</li>
+          <li><strong>重要性评分</strong>：每次写入时由 LLM 或规则打分，低分记忆优先压缩或删除。</li>
+          <li><strong>冲突消解</strong>：当新旧记忆矛盾时（例如用户改了偏好），以最新且高分的记忆为准，旧记忆标记为过期而非删除。</li>
+        </ul>
+
+        <h2>3.5 多用户隔离</h2>
+        <p>多租户 Agent 必须保证用户 A 看不到用户 B 的记忆。实现方式：</p>
+        <ul>
+          <li><strong>会话级命名空间</strong>：每个 session 有唯一 ID，所有记忆读写都带 tenant_id + session_id 前缀。</li>
+          <li><strong>向量库过滤</strong>：pgvector 的元数据字段存 tenant_id，查询时加 WHERE 过滤。</li>
+          <li><strong>数据库行级安全（RLS）</strong>：PostgreSQL RLS 策略强制隔离，即使应用层出错也不串数据。</li>
+        </ul>
+
+        <h2>本章产出：最小双层记忆实现</h2>
+        <p>一个同时具备「短期上下文 + 长期向量检索」的记忆模块。</p>
+
+        <h3>Python 版本</h3>
+        <pre><code class="language-python">"""
+双层记忆：会话上下文（short）+ 向量检索（long）
+依赖：openai >= 1.0（用于 embedding）
+"""
+from __future__ import annotations
+from dataclasses import dataclass, field
+from typing import List
+import openai
+
+client = openai.OpenAI()
+
+@dataclass
+class MemoryItem:
+    text: str
+    embedding: List[float] = field(default_factory=list)
+    score: float = 1.0  # 重要性，0–1
+
+class ShortTermMemory:
+    """滑动窗口：只保留最近 N 条"""
+    def __init__(self, capacity: int = 20):
+        self.capacity = capacity
+        self.items: List[str] = []
+
+    def add(self, text: str):
+        self.items.append(text)
+        if len(self.items) > self.capacity:
+            self.items.pop(0)
+
+    def get_context(self) -> str:
+        return "\n".join(self.items)
+
+class LongTermMemory:
+    """简化向量记忆：用 OpenAI embedding + 内嵌暴力检索"""
+    def __init__(self):
+        self.store: List[MemoryItem] = []
+
+    def _embed(self, text: str) -> List[float]:
+        r = client.embeddings.create(model="text-embedding-3-small", input=text)
+        return r.data[0].embedding
+
+    def add(self, text: str, score: float = 1.0):
+        item = MemoryItem(text=text, embedding=self._embed(text), score=score)
+        self.store.append(item)
+
+    def search(self, query: str, top_k: int = 3) -> List[str]:
+        q_vec = self._embed(query)
+        scored = []
+        for item in self.store:
+            sim = sum(a * b for a, b in zip(q_vec, item.embedding))
+            scored.append((sim * item.score, item.text))
+        scored.sort(reverse=True)
+        return [t for _, t in scored[:top_k]]
+
+# 使用示例
+mem = LongTermMemory()
+mem.add("用户偏好简洁回答", score=0.9)
+mem.add("项目数据库地址是 10.0.0.5", score=0.8)
+print(mem.search("项目数据库"))  # → ["项目数据库地址是 10.0.0.5", ...]</code></pre>
+
+        <h3>TypeScript 版本</h3>
+        <pre><code class="language-typescript">/**
+ * 双层记忆：会话上下文（short）+ 向量检索（long）
+ * 依赖：openai >= 4.0
+ */
+import OpenAI from "openai";
+
+interface MemoryItem { text: string; embedding: number[]; score: number; }
+
+class ShortTermMemory {
+  private items: string[] = [];
+  constructor(private capacity = 20) {}
+  add(text: string) {
+    this.items.push(text);
+    if (this.items.length > this.capacity) this.items.shift();
+  }
+  getContext() { return this.items.join("\n"); }
+}
+
+class LongTermMemory {
+  private store: MemoryItem[] = [];
+  constructor(private client: OpenAI) {}
+
+  private async embed(text: string): Promise<number[]> {
+    const r = await client.embeddings.create({ model: "text-embedding-3-small", input: text });
+    return r.data[0].embedding;
+  }
+
+  async add(text: string, score = 1.0) {
+    const embedding = await this.embed(text);
+    this.store.push({ text, embedding, score });
+  }
+
+  async search(query: string, topK = 3): Promise<string[]> {
+    const qVec = await this.embed(query);
+    const scored = this.store.map(item => ({
+      sim: qVec.reduce((s, a, i) => s + a * item.embedding[i], 0) * item.score,
+      text: item.text,
+    }));
+    scored.sort((a, b) => b.sim - a.sim);
+    return scored.slice(0, topK).map(s => s.text);
+  }
+}
+
+// 使用示例
+(async () => {
+  const mem = new LongTermMemory(new OpenAI());
+  mem.store = [
+    { text: "用户偏好简洁回答", embedding: [], score: 0.9 },
+    { text: "项目数据库地址是 10.0.0.5", embedding: [], score: 0.8 },
+  ];
+  // 生产环境应先调用 add() 写入 embedding
+  console.log(await mem.search("项目数据库"));
+})();</code></pre>
+
+        <div class="chapter__nav">
+          <a href="/chapters/chapter-02.html" class="chapter__nav-link">← 第 2 章</a>
+          <a href="/chapters/chapter-04.html" class="chapter__nav-link">第 4 章 工具使用与函数调用 →</a>
+        </div>
+      </section>
+    </article>
+  </main>
+
+  <script src="/assets/js/main.js" defer></script>
+</body>
+</html>
