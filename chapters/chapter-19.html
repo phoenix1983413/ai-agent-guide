@@ -11,12 +11,7 @@
 <body>
   <nav class="sidebar">
     <div class="sidebar__brand">
-      
-<figure class="diagram">
-  <img src="../assets/img/chapter-19-agent-protocols.svg" alt="Agent 协议标准" style="max-width:100%;height:auto;border-radius:8px;border:1px solid #E2E8F0;">
-  <figcaption style="text-align:center;font-size:12px;color:#718096;margin-top:8px;">Agent 协议标准</figcaption>
-</figure>
-<h2>AI Agent<br>权威指南</h2>
+      <h2>AI Agent<br>权威指南</h2>
       <span class="sidebar__version">v1.2 · 实战强化</span>
     </div>
     <ul class="sidebar__nav">
@@ -81,7 +76,12 @@
           <p><strong>章节地图</strong>：19.1 A2A 现状 → 19.2 MCP 详解 → 19.3 未来接口 → 19.4 协议安全 → 19.5 协议选型决策 → 本章产出。</p>
         </div>
 
-        <h2>19.1 A2A（Agent-to-Agent）协议现状</h2>
+        
+<figure class="diagram">
+  <img src="../assets/img/chapter-19-agent-protocols.svg" alt="Agent 协议标准" style="max-width:100%;height:auto;border-radius:8px;border:1px solid #E2E8F0;">
+  <figcaption style="text-align:center;font-size:12px;color:#718096;margin-top:8px;">Agent 协议标准</figcaption>
+</figure>
+<h2>19.1 A2A（Agent-to-Agent）协议现状</h2>
         <p>A2A 是 Google 提出的 Agent 间通信协议，核心思想：把 Agent 看成一个「远程服务」，有标准接口完成健康检查、任务提交、状态查询。关键设计：</p>
         <ul>
           <li><strong>Agent Card</strong>：每个 Agent 在 <code>/.well-known/agent.json</code> 发布「名片」，声明能力、端点、认证方式。调用方先读名片再决定怎么用它。</li>
