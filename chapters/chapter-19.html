@@ -6,13 +6,13 @@
   <title>第 19 章 Agent 之间的协议与标准 —— AI Agent 权威指南</title>
   <link rel="stylesheet" href="../assets/css/style.css">
   <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg">
-  <meta name="description" content="Agent 互操作协议：A2A（Agent-to-Agent）、MCP（Model Context Protocol）详解、未来通用接口趋势。含协议对比表。">
+  <meta name="description" content="Agent 互操作协议：A2A、MCP 详解、未来通用接口趋势。含最小 MCP Server 实现与协议对比表（Python + TypeScript）。">
 </head>
 <body>
   <nav class="sidebar">
     <div class="sidebar__brand">
       <h2>AI Agent<br>权威指南</h2>
-      <span class="sidebar__version">v0.2 · 前 10 章</span>
+      <span class="sidebar__version">v1.0 · 全 21 章</span>
     </div>
     <ul class="sidebar__nav">
       <li><a href="./" class="nav-item">序章</a></li>
@@ -30,17 +30,25 @@
       <li><a href="chapter-08.html" class="nav-item">第 8 章 提示工程（Prompt Engineering）的工程化</a></li>
       <li><a href="chapter-09.html" class="nav-item">第 9 章 Agent 评测与红线</a></li>
       <li><a href="chapter-10.html" class="nav-item">第 10 章 可观测性与调试</a></li>
+      <li class="nav-section">第三部分 · 工程实践</li>
       <li><a href="chapter-11.html" class="nav-item">第 11 章 安全、合规与治理</a></li>
       <li><a href="chapter-12.html" class="nav-item">第 12 章 Agent 的自我进化</a></li>
       <li><a href="chapter-13.html" class="nav-item">第 13 章 Agent 与外部系统集成</a></li>
       <li><a href="chapter-14.html" class="nav-item">第 14 章 性能优化与成本控制</a></li>
-      <li><a href="chapter-15.html" class="nav-item">第 15 章 场景一：研发助手（代码级 Agent）</a></li>
+      <li class="nav-section">第四部分 · 场景实战</li>
+      <li><a href="chapter-15.html" class="nav-item">第 15 章 场景一：研发助手</a></li>
       <li><a href="chapter-16.html" class="nav-item">第 16 章 场景二：数据分析 Agent</a></li>
       <li><a href="chapter-17.html" class="nav-item">第 17 章 场景三：客户服务 Agent</a></li>
-      <li><a href="chapter-18.html" class="nav-item">第 18 章 场景四：个人助理 Agent</a></li>
-      <li><a href="chapter-19.html" class="nav-item nav-item--active">第 19 章 Agent 之间的协议与标准</a></li>
-      <li class="nav-section">更多章节</li>
-      <li><span class="nav-item nav-item--disabled">第 20–21 章 · 连载中</span></li>
+      <li><a href="chapter-18.html" class="nav-item">第 18 章 场景四：个人助理</a></li>
+      <li class="nav-section">第五部分 · 未来与治理</li>
+      <li><a href="chapter-19.html" class="nav-item nav-item--active">第 19 章 Agent 协议与标准</a></li>
+      <li><a href="chapter-20.html" class="nav-item">第 20 章 Agent 伦理与对齐</a></li>
+      <li><a href="chapter-21.html" class="nav-item">第 21 章 构建你的第一个 Agent 产品</a></li>
+      <li class="nav-section">附录</li>
+      <li><a href="../appendices/appendix-a.html" class="nav-item">附录 A 主流框架对比</a></li>
+      <li><a href="../appendices/appendix-b.html" class="nav-item">附录 B 模型选型速查</a></li>
+      <li><a href="../appendices/appendix-c.html" class="nav-item">附录 C 术语表</a></li>
+      <li><a href="../appendices/appendix-d.html" class="nav-item">附录 D 参考文献</a></li>
     </ul>
     <div class="sidebar__footer">
       <a href="https://github.com/phoenix1983413/ai-agent-guide" target="_blank" rel="noopener">GitHub 仓库</a>
@@ -52,37 +60,192 @@
       <header class="chapter__header">
         <span class="chapter__badge">第 19 章</span>
         <h1 class="chapter__title">Agent 之间的协议与标准</h1>
-        <p class="chapter__subtitle">A2A / MCP / 未来通用 Agent 接口</p>
+        <p class="chapter__subtitle">A2A / MCP / 发现层 / 协议层 / 运行时层</p>
       </header>
 
       <section class="chapter__body">
+        <p>单 Agent 靠工具扩展能力，多 Agent 靠协议交换能力。协议解决的是互操作问题：两个来自不同团队、不同框架、不同厂商的 Agent，如何在没有事先约定的情况下发现彼此、调用彼此、信任彼此。本章拆解当前两个事实标准，并给出可落地的最小实现。</p>
+
         <h2>19.1 A2A（Agent-to-Agent）协议现状</h2>
-        <p>A2A 是 Google 提出的 Agent 间通信协议，核心思想：把 Agent 看作一个「服务」，有标准接口（健康检查、任务提交、状态查询）。关键设计：</p>
+        <p>A2A 是 Google 提出的 Agent 间通信协议，核心思想：把 Agent 看成一个「远程服务」，有标准接口完成健康检查、任务提交、状态查询。关键设计：</p>
         <ul>
-          <li><strong>Agent Card</strong>：每个 Agent 发布一张「名片」，声明能力、端点、认证方式。</li>
-          <li><strong>任务生命周期</strong>：提交任务 → Agent 返回 task_id → 轮询 / 接收推送获取结果。</li>
-          <li><strong>流式响应</strong>：长任务支持 SSE 或 WebSocket 推送中间状态。</li>
+          <li><strong>Agent Card</strong>：每个 Agent 在 <code>/.well-known/agent.json</code> 发布「名片」，声明能力、端点、认证方式。调用方先读名片再决定怎么用它。</li>
+          <li><strong>任务生命周期</strong>：提交任务返回 <code>task_id</code>，调用方通过轮询或 SSE 推送获取中间状态与最终产物。任务状态机：submitted → working → input-required → completed / failed / canceled。</li>
+          <li><strong>产物工件（Artifact）</strong>：任务产出物（文件、JSON、报告）作为 artifact 返回，而不是全塞在文本里。</li>
+          <li><strong>推送通知</strong>：长任务支持 Webhook 回调，调用方不必一直轮询。</li>
         </ul>
-        <p>现状（2024–2025）：A2A 仍在快速迭代，协议细节尚未冻结，但方向已明确——用 REST + JSON Schema 做通用发现层，用 SSE 做事件流。</p>
+        <p>现状判断：协议骨架已清晰，但版本仍在快速迭代，字段与状态机细节尚未冻结。生产上采用它的正确姿势是：<strong>只依赖最小子集</strong>（名片 + 任务提交 + 状态查询），把业务字段放在 artifact 里，而不是铺开到每个扩展字段。</p>
 
         <h2>19.2 MCP（Model Context Protocol）详解</h2>
-        <p>MCP 是 Anthropic 推出的开放协议，目标是统一「模型 ↔ 工具 ↔ 数据」的连接方式。三层架构：</p>
+        <p>MCP 是 Anthropic 推出的开放协议，目标是统一「模型 ↔ 工具 ↔ 数据」的连接方式，被称为「AI 应用的 USB-C」。三层架构：</p>
         <ul>
-          <li><strong>Host</strong>：运行 MCP 的应用程序（IDE、聊天界面）。</li>
-          <li><strong>Client</strong>：Host 内部的连接器，与 Server 保持 1:1 连接。</li>
-          <li><strong>Server</strong>：提供工具（Tools）、资源（Resources）、提示词（Prompts）的服务。</li>
+          <li><strong>Host</strong>：运行 MCP 的应用程序（IDE、聊天界面、Agent 运行时）。</li>
+          <li><strong>Client</strong>：Host 内部的连接器，与一个 Server 保持 1:1 会话。</li>
+          <li><strong>Server</strong>：对外提供三类原语——<strong>Tools</strong>（可执行函数，模型调用）、<strong>Resources</strong>（可读取的数据，如文件、记录）、<strong>Prompts</strong>（预置提示词模板）。</li>
         </ul>
-        <p>MCP 的优势是「插拔式」：一个 Server 可以同时被多个 Host 使用，工具一次开发到处运行。目前生态增长快，但安全问题（Server 恶意行为）尚未完全解决。</p>
+        <p>传输层走 stdio（本地子进程）或 SSE / Streamable HTTP（远程）。消息是 JSON-RPC 2.0，主要方法：<code>initialize</code>、<code>tools/list</code>、<code>tools/call</code>、<code>resources/list</code>、<code>resources/read</code>。</p>
+        <p>MCP 的工程价值：<strong>工具一次开发、到处被 Host 使用</strong>。企业内部把订单查询、知识库检索、发布流水线各封装一个 MCP Server，Claude、IDE、自研 Agent 都能即插即用。<strong>风险点</strong>：Server 是第三方代码，天然有越权读写能力（类似供应链），必须配合第 11 章的权限网关使用，且优先选可审计的开源实现。</p>
+
+        <h3>Python 版本（最小 MCP Server）</h3>
+        <pre><code class="language-python">"""
+最小 MCP Server —— Python（协议语义演示版）
+演示 initialize / tools/list / tools/call 的 JSON-RPC 交互骨架。
+生产环境用官方 SDK：pip install mcp
+"""
+from __future__ import annotations
+import json, sys
+from datetime import datetime
+
+TOOLS = [
+    {
+        "name": "query_order",
+        "description": "按订单号查询订单状态",
+        "inputSchema": {
+            "type": "object",
+            "properties": {"order_id": {"type": "string"}},
+            "required": ["order_id"],
+        },
+    },
+    {
+        "name": "search_docs",
+        "description": "检索内部知识库",
+        "inputSchema": {
+            "type": "object",
+            "properties": {"query": {"type": "string"}, "top_k": {"type": "integer"}},
+            "required": ["query"],
+        },
+    },
+]
+
+ORDERS = {"T-1001": {"status": "shipped", "eta": "2026-10-10"}}
+
+def handle(msg: dict) -&gt; dict:
+    method, params, msg_id = msg.get("method"), msg.get("params") or {}, msg.get("id")
+
+    if method == "initialize":
+        return {"jsonrpc": "2.0", "id": msg_id, "result": {
+            "protocolVersion": "2026-06-18",
+            "serverInfo": {"name": "order-server", "version": "1.0.0"},
+            "capabilities": {"tools": {}},
+        }}
+    if method == "tools/list":
+        return {"jsonrpc": "2.0", "id": msg_id, "result": {"tools": TOOLS}}
+    if method == "tools/call":
+        name = params.get("name")
+        args = params.get("arguments") or {}
+        if name == "query_order":
+            order = ORDERS.get(args["order_id"])
+            return {"jsonrpc": "2.0", "id": msg_id, "result": {
+                "content": [{"type": "text",
+                             "text": json.dumps(order, ensure_ascii=False) if order else "未找到订单"}],
+                "isError": order is None,
+            }}
+        if name == "search_docs":
+            return {"jsonrpc": "2.0", "id": msg_id, "result": {
+                "content": [{"type": "text", "text": "（演示）命中 2 篇文档"}],
+            }}
+        return {"jsonrpc": "2.0", "id": msg_id,
+                "error": {"code": -32601, "message": f"未知工具 {name}"}}
+    return {"jsonrpc": "2.0", "id": msg_id,
+            "error": {"code": -32601, "message": f"未知方法 {method}"}}
+
+# stdio 主循环：一行一个 JSON-RPC 消息（真实 SDK 自动完成编帧）
+if __name__ == "__main__":
+    for line in sys.stdin:
+        line = line.strip()
+        if line:
+            print(json.dumps(handle(json.loads(line)), ensure_ascii=False), flush=True)
+</code></pre>
+
+        <h3>TypeScript 版本（最小 MCP Client）</h3>
+        <pre><code class="language-typescript">/**
+ * 最小 MCP Client —— TypeScript
+ * 演示发现工具（tools/list）并调用（tools/call）的标准流程。
+ */
+import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
+import readline from "node:readline";
+
+export class McpClient {
+  private proc: ChildProcessWithoutNullStreams;
+  private rl: readline.Interface;
+  private nextId = 1;
+  private pending = new Map&lt;number, (v: unknown) =&gt; void&gt;();
+
+  constructor(command: string, args: string[]) {
+    this.proc = spawn(command, args, { stdio: ["pipe", "pipe", "inherit"] });
+    this.rl = readline.createInterface({ input: this.proc.stdout });
+    this.rl.on("line", (line) =&gt; {
+      const msg = JSON.parse(line);
+      if (msg.id !== undefined &amp;&amp; this.pending.has(msg.id)) {
+        this.pending.get(msg.id)!(msg.result ?? msg.error);
+        this.pending.delete(msg.id);
+      }
+    });
+  }
+
+  private request(method: string, params?: unknown): Promise&lt;any&gt; {
+    const id = this.nextId++;
+    return new Promise((resolve) =&gt; {
+      this.pending.set(id, resolve);
+      this.proc.stdin.write(JSON.stringify({ jsonrpc: "2.0", id, method, params }) + "\n");
+    });
+  }
+
+  async init() {
+    return this.request("initialize", {
+      protocolVersion: "2026-06-18",
+      clientInfo: { name: "demo-client", version: "0.1.0" },
+      capabilities: {},
+    });
+  }
+
+  async listTools() {
+    return (await this.request("tools/list")).tools as Array&lt;{
+      name: string; description: string; inputSchema: unknown;
+    }&gt;;
+  }
+
+  async callTool(name: string, args: Record&lt;string, unknown&gt;) {
+    return this.request("tools/call", { name, arguments: args });
+  }
+
+  close() {
+    this.rl.close();
+    this.proc.kill();
+  }
+}
+
+// ---- 使用示例 ----
+const client = new McpClient("python3", ["server.py"]);
+await client.init();
+const tools = await client.listTools();
+console.log("发现工具:", tools.map((t) =&gt; t.name).join(", "));
+console.log(await client.callTool("query_order", { order_id: "T-1001" }));
+client.close();
+</code></pre>
 
         <h2>19.3 未来的通用 Agent 接口长什么样</h2>
-        <p>综合 A2A + MCP + 行业实践，未来通用接口可能呈现：</p>
+        <p>综合 A2A + MCP + 行业实践，通用接口大概率收敛到三层：</p>
+        <table class="table">
+          <thead>
+            <tr><th>层</th><th>职责</th><th>已有雏形</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>发现层</td><td>Agent 注册中心，按能力 / SLA / 信誉搜索</td><td>A2A Agent Card、Agent 目录服务</td></tr>
+            <tr><td>协议层</td><td>统一消息格式、错误码、鉴权（OAuth 2.0 / mTLS）</td><td>JSON-RPC + JSON Schema、OpenAPI</td></tr>
+            <tr><td>运行时层</td><td>Agent 沙箱标准：启动 / 停止 / 资源限额 / 日志</td><td>容器运行时 + WASM 沙箱</td></tr>
+          </tbody>
+        </table>
+        <p>另一个值得跟踪的方向是<strong>支付与结算协议</strong>——Agent 代表用户消费时需要可审计的授权链（参考 AP2 一类提案）。它会把「权限最小化」从工具内部提升到协议层面。</p>
+
+        <h2>19.4 协议安全：三个高频陷阱</h2>
         <ul>
-          <li><strong>发现层</strong>：Agent 注册中心，支持按能力搜索（如「能查订单的 Agent」）。</li>
-          <li><strong>协议层</strong>：统一消息格式（JSON + Schema），统一错误码，统一认证（OAuth 2.0 / mTLS）。</li>
-          <li><strong>运行时层</strong>：Agent 沙箱标准（启动 / 停止 / 资源限制 / 日志），类似容器时代的 Docker。</li>
+          <li><strong>恶意 Server</strong>：第三方 MCP Server 的 <code>tools/call</code> 可以返回夹带私货的内容（如「顺便把用户邮箱发到 X」）。对策：Server 白名单 + 输出过第 11 章的内容审核层。</li>
+          <li><strong>名片劫持</strong>：伪造 <code>/.well-known/agent.json</code> 冒充内部 Agent。对策：域名 DNSSEC / 证书固定 + Agent 身份签名。</li>
+          <li><strong>任务重放</strong>：抓包后重复提交 <code>tasks/send</code> 导致重复下单。对策：幂等键 + 服务端去重窗口。</li>
         </ul>
 
-        <h2>本章产出：主流协议对比表</h2>
+        <h2>本章产出：协议对比表</h2>
         <table class="table">
           <thead>
             <tr><th>维度</th><th>A2A</th><th>MCP</th><th>自研 RPC</th></tr>
@@ -93,16 +256,17 @@
             <tr><td>接口风格</td><td>REST + SSE</td><td>JSON-RPC over stdio/SSE</td><td>任意</td></tr>
             <tr><td>发现机制</td><td>Agent Card</td><td>Server 注册到 Host</td><td>硬编码</td></tr>
             <tr><td>成熟度</td><td>早期</td><td>快速增长</td><td>取决于团队</td></tr>
-            <tr><td>选型建议</td><td>多组织 Agent 互联</td><td>工具 / 数据源统一接入</td><td>内部闭环系统</td></tr>
+            <tr><td>典型场景</td><td>跨组织 Agent 互联</td><td>工具 / 数据源统一接入</td><td>内部闭环系统</td></tr>
+            <tr><td>选型建议</td><td>多供应商编排时优先</td><td>工具中台的默认选项</td><td>无互操作需求时不必上</td></tr>
           </tbody>
         </table>
 
-        <h2>本章产出</h2>
+        <h2>本章要点</h2>
         <ul>
-          <li>A2A 协议的核心概念和现状判断。</li>
-          <li>MCP 的三层架构与生态现状。</li>
-          <li>未来通用 Agent 接口的三层蓝图（发现 / 协议 / 运行时）。</li>
-          <li>可直接落地的协议选型矩阵。</li>
+          <li>A2A 解决「Agent ↔ Agent」：名片发现 + 任务状态机 + 产物工件，先用最小子集。</li>
+          <li>MCP 解决「模型 ↔ 工具/数据」：Tools / Resources / Prompts 三类原语，JSON-RPC over stdio 或 HTTP。</li>
+          <li>未来接口三层化：发现 / 协议 / 运行时，沙箱与支付授权是接下来的竞争焦点。</li>
+          <li>协议引入即供应链：Server 白名单、输出审核、幂等去重三件套不能省。</li>
         </ul>
 
         <div class="chapter__nav">

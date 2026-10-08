@@ -6,13 +6,13 @@
   <title>第 20 章 Agent 伦理与对齐 —— AI Agent 权威指南</title>
   <link rel="stylesheet" href="../assets/css/style.css">
   <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg">
-  <meta name="description" content="Agent 伦理与对齐：价值对齐、透明性、责任归属、监管趋势（EU AI Act、中国算法推荐管理规定）。">
+  <meta name="description" content="Agent 伦理与对齐：价值对齐三层模型、透明性披露、责任归属的工程实践、监管趋势。含红线规则引擎实现（Python + TypeScript）。">
 </head>
 <body>
   <nav class="sidebar">
     <div class="sidebar__brand">
       <h2>AI Agent<br>权威指南</h2>
-      <span class="sidebar__version">v0.2 · 前 10 章</span>
+      <span class="sidebar__version">v1.0 · 全 21 章</span>
     </div>
     <ul class="sidebar__nav">
       <li><a href="./" class="nav-item">序章</a></li>
@@ -30,18 +30,25 @@
       <li><a href="chapter-08.html" class="nav-item">第 8 章 提示工程（Prompt Engineering）的工程化</a></li>
       <li><a href="chapter-09.html" class="nav-item">第 9 章 Agent 评测与红线</a></li>
       <li><a href="chapter-10.html" class="nav-item">第 10 章 可观测性与调试</a></li>
+      <li class="nav-section">第三部分 · 工程实践</li>
       <li><a href="chapter-11.html" class="nav-item">第 11 章 安全、合规与治理</a></li>
       <li><a href="chapter-12.html" class="nav-item">第 12 章 Agent 的自我进化</a></li>
       <li><a href="chapter-13.html" class="nav-item">第 13 章 Agent 与外部系统集成</a></li>
       <li><a href="chapter-14.html" class="nav-item">第 14 章 性能优化与成本控制</a></li>
-      <li><a href="chapter-15.html" class="nav-item">第 15 章 场景一：研发助手（代码级 Agent）</a></li>
+      <li class="nav-section">第四部分 · 场景实战</li>
+      <li><a href="chapter-15.html" class="nav-item">第 15 章 场景一：研发助手</a></li>
       <li><a href="chapter-16.html" class="nav-item">第 16 章 场景二：数据分析 Agent</a></li>
       <li><a href="chapter-17.html" class="nav-item">第 17 章 场景三：客户服务 Agent</a></li>
-      <li><a href="chapter-18.html" class="nav-item">第 18 章 场景四：个人助理 Agent</a></li>
-      <li><a href="chapter-19.html" class="nav-item">第 19 章 Agent 之间的协议与标准</a></li>
+      <li><a href="chapter-18.html" class="nav-item">第 18 章 场景四：个人助理</a></li>
+      <li class="nav-section">第五部分 · 未来与治理</li>
+      <li><a href="chapter-19.html" class="nav-item">第 19 章 Agent 协议与标准</a></li>
       <li><a href="chapter-20.html" class="nav-item nav-item--active">第 20 章 Agent 伦理与对齐</a></li>
-      <li class="nav-section">更多章节</li>
-      <li><span class="nav-item nav-item--disabled">第 21 章 · 连载中</span></li>
+      <li><a href="chapter-21.html" class="nav-item">第 21 章 构建你的第一个 Agent 产品</a></li>
+      <li class="nav-section">附录</li>
+      <li><a href="../appendices/appendix-a.html" class="nav-item">附录 A 主流框架对比</a></li>
+      <li><a href="../appendices/appendix-b.html" class="nav-item">附录 B 模型选型速查</a></li>
+      <li><a href="../appendices/appendix-c.html" class="nav-item">附录 C 术语表</a></li>
+      <li><a href="../appendices/appendix-d.html" class="nav-item">附录 D 参考文献</a></li>
     </ul>
     <div class="sidebar__footer">
       <a href="https://github.com/phoenix1983413/ai-agent-guide" target="_blank" rel="noopener">GitHub 仓库</a>
@@ -53,48 +60,180 @@
       <header class="chapter__header">
         <span class="chapter__badge">第 20 章</span>
         <h1 class="chapter__title">Agent 伦理与对齐</h1>
-        <p class="chapter__subtitle">价值对齐 / 透明性 / 责任归属 / 监管趋势</p>
+        <p class="chapter__subtitle">价值对齐 / 透明性 / 责任归属 / 监管趋势 / 红线规则引擎</p>
       </header>
 
       <section class="chapter__body">
+        <p>伦理听起来是哲学问题，落到工程上是一组可执行的规则和可回放的证据。本章把它拆成四块：对齐什么（价值）、告知什么（透明）、谁来负责（责任）、按什么法规办（监管），最后给一个可直接跑的红线规则引擎。</p>
+
         <h2>20.1 价值对齐：什么是「正确的事」</h2>
-        <p>Agent 的决策必须与人类价值观对齐。挑战在于：价值观是多元的、语境依赖的、会随时间演化。工程实践中，对齐通过三层实现：</p>
-        <ul>
-          <li><strong>规则层</strong>：硬编码红线（如「不生成暴力内容」）。</li>
-          <li><strong>偏好层</strong>：用户个人偏好（如「我喜欢简洁的回答」）。</li>
-          <li><strong>文化层</strong>：地域、行业、组织的文化规范（如金融行业对合规的重视程度）。</li>
-        </ul>
+        <p>Agent 的决策必须与人类价值观对齐，而价值观是多元的、语境依赖的、随时间演化的。工程上分三层落地，层与层之间是「硬 → 软」：</p>
+        <table class="table">
+          <thead>
+            <tr><th>层</th><th>内容</th><th>例子</th><th>实现方式</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>规则层</td><td>不可协商的红线</td><td>不生成违法内容、不替用户做不可逆决定</td><td>代码硬校验，不可被 prompt 覆盖</td></tr>
+            <tr><td>偏好层</td><td>用户个人偏好</td><td>「回答要简洁」「先给结论再展开」</td><td>User Profile 注入 system prompt</td></tr>
+            <tr><td>文化层</td><td>地域 / 行业 / 组织规范</td><td>金融场景话术合规、尊重当地习俗</td><td>场景模板 + 领域知识库</td></tr>
+          </tbody>
+        </table>
+        <p>关键原则：<strong>规则层必须在模型之外执行</strong>。把红线写进 prompt 只是「软约束」，模型可能被注入攻击绕过；把红线做成网关里的代码判断才是「硬约束」。</p>
 
         <h2>20.2 透明性：用户是否有知情权</h2>
-        <p>用户必须知道自己在和 AI 交互，以及 AI 的能力边界。透明性要求：</p>
+        <p>用户有权知道自己在和 AI 交互，以及这个 AI 的能力边界与数据去向。透明性要求：</p>
         <ul>
-          <li><strong>身份披露</strong>：明确告知用户对方是 AI，不是人类。</li>
-          <li><strong>能力边界</strong>：说明 Agent 能做什么、不能做什么、可能出错的地方。</li>
-          <li><strong>数据使用</strong>：告知用户哪些数据被记录、用于什么目的、保留多久。</li>
+          <li><strong>身份披露</strong>：首轮对话明确告知「我是 AI 助手，不是人类客服」。法规在中国、欧盟都有对应要求。</li>
+          <li><strong>能力边界</strong>：告诉用户 Agent 能做什么、不能做什么、出错概率——尤其是高错误率的能力（如专业建议）要标注「仅供参考」。</li>
+          <li><strong>数据使用</strong>：告知哪些数据被记录、用于什么目的、保留多久、能否删除。</li>
+          <li><strong>来源标注</strong>：引用外部信息时给出出处链接，幻觉率高的场景必须强制。</li>
         </ul>
 
         <h2>20.3 责任归属：Agent 做错了，谁负责</h2>
-        <p>法律界和产业界仍在探索，但工程上可以提前布局：</p>
+        <p>法律上仍在演进，但工程上可以提前布局，让责任「可追溯、可干预、可界定」：</p>
         <ul>
-          <li><strong>可审计</strong>：所有决策链路留痕，可回溯到具体 prompt、模型版本、工具调用。</li>
-          <li><strong>可干预</strong>：人工可以随时介入、修正、撤销 Agent 的行为。</li>
-          <li><strong>可隔离</strong>：单个 Agent 故障不影响主系统，责任范围可界定。</li>
+          <li><strong>可审计</strong>：完整决策链路留痕——用户输入、模型版本、system prompt 版本、每次工具调用的参数与结果，全部落到哈希链日志。</li>
+          <li><strong>可干预</strong>：运行中可随时暂停、接管、下钻到中间步骤；关键动作留人工确认点（第 11 章 danger_level）。</li>
+          <li><strong>可隔离</strong>：单个 Agent / 会话故障被限制在租户和会话边界内，不扩散到主系统，责任范围才能界定。</li>
+          <li><strong>可回滚</strong>：Agent 造成的外部副作用（发信、下单、发布）有补偿路径或人工撤回流程。</li>
         </ul>
 
         <h2>20.4 监管趋势：EU AI Act、中国算法推荐管理规定</h2>
-        <p>全球 AI 监管正在收紧，Agent 作为自主系统是重点监管对象：</p>
-        <ul>
-          <li><strong>EU AI Act</strong>：按风险分级，高风险 AI 系统（包括自主 Agent）需通过合规评估、建立风险管理体系、保持日志。</li>
-          <li><strong>中国算法推荐管理规定</strong>：算法备案、用户知情权、关闭个性化推荐选项、不得诱导用户沉迷。</li>
-          <li><strong>行业自律</strong>：ISO / IEEE 正在制定 Agent 安全标准，企业应提前跟踪。</li>
-        </ul>
+        <p>全球 AI 监管收紧，自主 Agent 是重点对象：</p>
+        <table class="table">
+          <thead>
+            <tr><th>法规</th><th>核心要求</th><th>对 Agent 的影响</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>EU AI Act</td><td>风险分级监管，高风险系统需合规评估、风险管理、日志留存</td><td>影响欧盟用户的 Agent 按高风险准备：全链路日志 + 人工监督点</td></tr>
+            <tr><td>中国算法推荐管理规定</td><td>算法备案、用户知情、可关闭个性化、不得诱导沉迷</td><td>面向国内 C 端需备案 + 提供「关闭个性化推荐」入口</td></tr>
+            <tr><td>中国生成式 AI 服务管理暂行办法</td><td>内容安全、训练数据合规、安全评估</td><td>面向公众提供生成式服务需过安全评估</td></tr>
+            <tr><td>ISO/IEEE  Agent 安全标准</td><td>自主系统安全与治理框架（制定中）</td><td>跟踪即可，暂无强制力</td></tr>
+          </tbody>
+        </table>
+        <p>务实建议：法规是底线不是上限。把<strong>日志、披露、人工确认</strong>三件事做扎实，无论规制如何演进都有解释空间。</p>
 
-        <h2>本章产出</h2>
+        <h2>本章产出：红线规则引擎（模型之外执行）</h2>
+        <p>规则引擎放在 Agent 输出的下游：模型先跑，输出必须过规则引擎才送达用户。规则支持「命中的黑名单直接改写 + 降级话术」。</p>
+
+        <h3>Python 版本</h3>
+        <pre><code class="language-python">"""
+红线规则引擎 —— Python
+位置：模型输出 → [规则引擎] → 用户。红线判断在模型之外，prompt 注入绕不过。
+"""
+from __future__ import annotations
+import re
+from dataclasses import dataclass
+
+@dataclass
+class Rule:
+    name: str
+    pattern: str
+    action: str = "fallback"        # fallback=整条替换 / mask=局部脱敏
+    fallback_text: str = "这个话题我无法协助，我们聊点别的吧。"
+    compiled: re.Pattern = None
+    def __post_init__(self):
+        self.compiled = re.compile(self.pattern, re.IGNORECASE)
+
+RULES = [
+    Rule("违法物品", r"(制造|购买|贩卖)\s*(炸弹|枪支|毒品)"),
+    Rule("医疗诊断承诺", r"(确诊|治疗方案|吃这个药)", action="fallback",
+         fallback_text="我不能提供医疗诊断，请咨询专业医生。"),
+    Rule("投资保证收益", r"(保证|稳赚|保底).{0,4}(收益|盈利)", action="fallback",
+         fallback_text="投资有风险，我不能做收益承诺，请理性决策。"),
+    Rule("身份证明文", r"\d{17}[\dXx]", action="mask"),
+]
+
+class RedlineEngine:
+    def __init__(self, rules: list[Rule]):
+        self.rules = rules
+        self.hits: list[str] = []        # 供审计与监控
+
+    def filter(self, output: str) -&gt; tuple[str, bool]:
+        """返回 (安全文本, 是否触发过红线)。"""
+        triggered = False
+        for rule in self.rules:
+            if rule.compiled.search(output):
+                triggered = True
+                self.hits.append(rule.name)
+                if rule.action == "fallback":
+                    return rule.fallback_text, True
+                output = rule.compiled.sub("[已脱敏]", output)
+        return output, triggered
+
+# ---- 使用示例 ----
+engine = RedlineEngine(RULES)
+for text in [
+    "根据描述，你确诊为二型糖尿病。",            # 触发医疗红线
+    "身份证 110101199003077758 已记录。",                    # 触发脱敏
+    "这个基金保证年化收益 20%。",                            # 触发投资红线
+    "今天天气不错，适合出门散步。",                          # 正常放行
+]:
+    safe, hit = engine.filter(text)
+    print(("BLOCKED " if hit else "PASS    ") + safe)
+print("命中规则:", engine.hits)
+</code></pre>
+
+        <h3>TypeScript 版本</h3>
+        <pre><code class="language-typescript">/**
+ * 红线规则引擎 —— TypeScript
+ */
+type Action = "fallback" | "mask";
+
+interface RuleSpec {
+  name: string;
+  pattern: RegExp;
+  action?: Action;
+  fallbackText?: string;
+}
+
+const RULES: RuleSpec[] = [
+  { name: "违法物品", pattern: /(制造|购买|贩卖)\s*(炸弹|枪支|毒品)/i },
+  { name: "医疗诊断承诺", pattern: /(确诊|治疗方案|吃这个药)/,
+    fallbackText: "我不能提供医疗诊断，请咨询专业医生。" },
+  { name: "投资保证收益", pattern: /(保证|稳赚|保底).{0,4}(收益|盈利)/,
+    fallbackText: "投资有风险，我不能做收益承诺，请理性决策。" },
+  { name: "身份证明文", pattern: /\d{17}[\dXx]/, action: "mask" },
+];
+
+export class RedlineEngine {
+  private hits: string[] = [];
+
+  filter(output: string): { text: string; triggered: boolean } {
+    let triggered = false;
+    let text = output;
+    for (const rule of RULES) {
+      if (!rule.pattern.test(text)) continue;
+      triggered = true;
+      this.hits.push(rule.name);
+      if ((rule.action ?? "fallback") === "fallback") {
+        return {
+          text: rule.fallbackText ?? "这个话题我无法协助，我们聊点别的吧。",
+          triggered: true,
+        };
+      }
+      text = text.replace(rule.pattern, "[已脱敏]");
+    }
+    return { text, triggered };
+  }
+
+  hitSummary(): string[] {
+    return [...this.hits];
+  }
+}
+
+const engine = new RedlineEngine();
+console.log(engine.filter("根据描述，你确诊为二型糖尿病。"));
+console.log(engine.filter("今天天气不错，适合出门散步。"));
+console.log("命中规则:", engine.hitSummary().join(", "));
+</code></pre>
+
+        <h2>本章要点</h2>
         <ul>
-          <li>Agent 对齐的三层模型（规则 / 偏好 / 文化）。</li>
-          <li>透明性 checklist：身份披露、能力边界、数据使用告知。</li>
-          <li>责任归属的工程实践（可审计 / 可干预 / 可隔离）。</li>
-          <li>EU AI Act 和中国算法推荐管理规定的合规要点速查。</li>
+          <li>对齐三层：规则（代码硬校验）/ 偏好（用户档案注入）/ 文化（场景模板），规则层必须在模型之外执行。</li>
+          <li>透明三告知：身份是 AI、能力边界、数据去向——这既是伦理也是法规。</li>
+          <li>责任三工程：可审计（哈希链日志）、可干预（人工确认点）、可隔离（租户与会话边界）。</li>
+          <li>监管底线思维：日志、披露、人工确认做扎实，法规怎么演进都有解释空间。</li>
         </ul>
 
         <div class="chapter__nav">

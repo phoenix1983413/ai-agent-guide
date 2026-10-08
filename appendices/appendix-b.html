@@ -6,13 +6,13 @@
   <title>附录 B 模型选型速查 —— AI Agent 权威指南</title>
   <link rel="stylesheet" href="../assets/css/style.css">
   <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg">
-  <meta name="description" content="大语言模型选型速查：按延迟、成本、能力三维度对比 GPT-4o、Claude 3.5、Gemini、Qwen、DeepSeek 等主流模型。">
+  <meta name="description" content="大语言模型选型速查：延迟/成本/能力三维度对比、Agent 特需能力、模型路由策略与多模型路由实现（Python + TypeScript）。">
 </head>
 <body>
   <nav class="sidebar">
     <div class="sidebar__brand">
       <h2>AI Agent<br>权威指南</h2>
-      <span class="sidebar__version">v0.2 · 前 10 章</span>
+      <span class="sidebar__version">v1.0 · 全 21 章</span>
     </div>
     <ul class="sidebar__nav">
       <li><a href="./" class="nav-item">序章</a></li>
@@ -30,21 +30,25 @@
       <li><a href="../chapters/chapter-08.html" class="nav-item">第 8 章 提示工程（Prompt Engineering）的工程化</a></li>
       <li><a href="../chapters/chapter-09.html" class="nav-item">第 9 章 Agent 评测与红线</a></li>
       <li><a href="../chapters/chapter-10.html" class="nav-item">第 10 章 可观测性与调试</a></li>
+      <li class="nav-section">第三部分 · 工程实践</li>
       <li><a href="../chapters/chapter-11.html" class="nav-item">第 11 章 安全、合规与治理</a></li>
       <li><a href="../chapters/chapter-12.html" class="nav-item">第 12 章 Agent 的自我进化</a></li>
       <li><a href="../chapters/chapter-13.html" class="nav-item">第 13 章 Agent 与外部系统集成</a></li>
       <li><a href="../chapters/chapter-14.html" class="nav-item">第 14 章 性能优化与成本控制</a></li>
-      <li><a href="../chapters/chapter-15.html" class="nav-item">第 15 章 场景一：研发助手（代码级 Agent）</a></li>
+      <li class="nav-section">第四部分 · 场景实战</li>
+      <li><a href="../chapters/chapter-15.html" class="nav-item">第 15 章 场景一：研发助手</a></li>
       <li><a href="../chapters/chapter-16.html" class="nav-item">第 16 章 场景二：数据分析 Agent</a></li>
       <li><a href="../chapters/chapter-17.html" class="nav-item">第 17 章 场景三：客户服务 Agent</a></li>
-      <li><a href="../chapters/chapter-18.html" class="nav-item">第 18 章 场景四：个人助理 Agent</a></li>
-      <li><a href="../chapters/chapter-19.html" class="nav-item">第 19 章 Agent 之间的协议与标准</a></li>
+      <li><a href="../chapters/chapter-18.html" class="nav-item">第 18 章 场景四：个人助理</a></li>
+      <li class="nav-section">第五部分 · 未来与治理</li>
+      <li><a href="../chapters/chapter-19.html" class="nav-item">第 19 章 Agent 协议与标准</a></li>
       <li><a href="../chapters/chapter-20.html" class="nav-item">第 20 章 Agent 伦理与对齐</a></li>
-      <li><a href="../chapters/chapter-21.html" class="nav-item">第 21 章 构建你自己的第一个 Agent 产品</a></li>
-      <li><a href="../appendices/appendix-a.html" class="nav-item">附录 A 主流框架横向对比</a></li>
-      <li><a href="../appendices/appendix-b.html" class="nav-item nav-item--active">附录 B 模型选型速查</a></li>
-      <li><a href="../appendices/appendix-c.html" class="nav-item">附录 C 术语表</a></li>
-      <li><a href="../appendices/appendix-d.html" class="nav-item">附录 D 参考文献</a></li>
+      <li><a href="../chapters/chapter-21.html" class="nav-item">第 21 章 构建你的第一个 Agent 产品</a></li>
+      <li class="nav-section">附录</li>
+      <li><a href="appendix-a.html" class="nav-item">附录 A 主流框架对比</a></li>
+      <li><a href="appendix-b.html" class="nav-item nav-item--active">附录 B 模型选型速查</a></li>
+      <li><a href="appendix-c.html" class="nav-item">附录 C 术语表</a></li>
+      <li><a href="appendix-d.html" class="nav-item">附录 D 参考文献</a></li>
     </ul>
     <div class="sidebar__footer">
       <a href="https://github.com/phoenix1983413/ai-agent-guide" target="_blank" rel="noopener">GitHub 仓库</a>
@@ -56,11 +60,12 @@
       <header class="chapter__header">
         <span class="chapter__badge">附录 B</span>
         <h1 class="chapter__title">模型选型速查</h1>
-        <p class="chapter__subtitle">按延迟、成本、能力三维度选型</p>
+        <p class="chapter__subtitle">三维度对比 / Agent 特需能力 / 模型路由 / 国内合规</p>
       </header>
 
       <section class="chapter__body">
-        <p>Agent 对模型的要求比普通 Chatbot 更高：需要函数调用、长上下文、工具使用可靠性。以下速查表按「延迟 / 成本 / 能力」三维度评分（1–5 星）：</p>
+        <p>Agent 对模型的要求比普通 Chatbot 更高：函数调用稳定性、长上下文、多轮工具结果的整合能力，任何一项掉链子都会让 Agent 在第三步崩溃。以下速查表按「延迟 / 成本 / 能力」评分（1–5 星）：</p>
+
         <table class="table">
           <thead>
             <tr><th>模型</th><th>延迟</th><th>成本</th><th>推理能力</th><th>函数调用</th><th>长上下文</th><th>推荐用途</th></tr>
@@ -75,24 +80,177 @@
             <tr><td>Llama 3.1-8B</td><td>⭐⭐⭐⭐⭐</td><td>⭐⭐⭐⭐⭐</td><td>⭐⭐⭐</td><td>⭐⭐⭐</td><td>⭐⭐</td><td>端侧、低延迟场景</td></tr>
           </tbody>
         </table>
+        <blockquote>
+          评分随版本快速变化，本表给出的是<strong>相对量级而非绝对值</strong>。选型前请用第 9 章的评测框架对你的真实任务跑一轮对比，比任何榜单都可靠。
+        </blockquote>
+
+        <h2>Agent 场景的特需能力</h2>
+        <p>普通 Chatbot 的选型逻辑在 Agent 上会失效，四个 Agent 专属考察点：</p>
+        <ol>
+          <li><strong>函数调用可靠性</strong>：工具多（&gt;10 个）时是否仍能选对工具、参数是否稳定符合 Schema。这是 Agent 的生死线，用你自己的工具集实测。</li>
+          <li><strong>长上下文利用效率</strong>：标称 128K 不等于全程有效。跑「大海捞针」测试（把关键信息埋在文档中部），确认命中位置与丢失区间。</li>
+          <li><strong>多轮工具结果的整合</strong>：连续 3 轮工具返回后，模型是否还会记得第一步的目标、忽略中间噪音。</li>
+          <li><strong>输出格式遵从性</strong>：要求 JSON 输出时的格式合规率（用 JSON Schema 校验），决定你要写多少重试逻辑。</li>
+        </ol>
 
         <h2>模型路由策略</h2>
-        <p>生产级 Agent 通常不绑定单一模型，而是按任务复杂度路由：</p>
+        <p>生产级 Agent 不绑定单一模型，按任务复杂度路由，兼顾成本与能力：</p>
         <ul>
-          <li><strong>简单任务</strong>（分类、提取、格式转换）→ 小模型，成本低、延迟低。</li>
-          <li><strong>中等任务</strong>（单步推理、简单规划）→ 中等模型，性价比最优。</li>
-          <li><strong>复杂任务</strong>（多步规划、代码生成、长文档分析）→ 大模型，能力最强。</li>
+          <li><strong>简单任务</strong>（分类、提取、格式转换）→ 小模型（4o-mini / 7B 级），成本低、延迟低。</li>
+          <li><strong>中等任务</strong>（单步推理、简单规划）→ 中端模型（Sonnet / V3 级），性价比最优。</li>
+          <li><strong>复杂任务</strong>（多步规划、代码生成、长文档分析）→ 旗舰模型（4o / Claude 级），能力优先。</li>
+          <li><strong>兜底策略</strong>：小模型输出校验失败（格式错 / 置信度低）时，自动升级到旗舰模型重试。</li>
+        </ul>
+
+        <h3>Python 版本（复杂度路由器）</h3>
+        <pre><code class="language-python">"""
+模型路由器 —— Python
+按任务复杂度选模型；小模型结果校验失败自动升级旗舰模型。
+"""
+from __future__ import annotations
+import json, re
+from dataclasses import dataclass
+
+@dataclass
+class ModelSpec:
+    name: str
+    tier: int                # 1 旗舰 / 2 中端 / 3 轻量
+    max_tools: int           # 可靠函数调度的工具数上限
+
+MODELS = [
+    ModelSpec("gpt-4o",           1, max_tools=50),
+    ModelSpec("claude-3-5-sonnet",2, max_tools=30),
+    ModelSpec("deepseek-chat",    2, max_tools=30),
+    ModelSpec("gpt-4o-mini",      3, max_tools=10),
+]
+
+def classify_complexity(task: str, tool_count: int, require_json: bool) -&gt; int:
+    """轻量启发式分类；生产中可换成小模型分类器。"""
+    score = 0
+    if tool_count &gt; 10:
+        score += 1
+    if require_json:
+        score += 1
+    if re.search(r"(规划|计划|多步|分析|架构|对比)", task):
+        score += 1
+    if len(task) &gt; 500:
+        score += 1
+    return score
+
+def route(task: str, tool_count: int = 0, require_json: bool = False) -&gt; list[str]:
+    """返回候选模型链：[首选, 兜底, 兜底...]"""
+    complexity = classify_complexity(task, tool_count, require_json)
+    tiers = {0: [3, 2, 1], 1: [2, 1], 2: [1]}[min(complexity, 2)]
+    chain: list[str] = []
+    for tier in tiers:
+        for m in MODELS:
+            if m.tier == tier and tool_count &lt;= m.max_tools and m.name not in chain:
+                chain.append(m.name)
+    return chain
+
+def run_with_fallback(candidates: list[str], call) -&gt; tuple[str, str]:
+    """依次尝试，校验失败升级下一档，直到旗舰模型。"""
+    last_err = ""
+    for model in candidates:
+        out = call(model)
+        if is_valid(out):
+            return model, out
+        last_err = f"{model} 输出未通过校验"
+    raise RuntimeError(f"全部候选失败：{last_err}")
+
+def is_valid(out: str) -&gt; bool:
+    """演示校验：非空且（若是 JSON）可解析。"""
+    if not out.strip():
+        return False
+    try:
+        json.loads(out)
+        return True
+    except Exception:
+        return bool(re.search(r"[\u4e00-\u9fff]", out))   # 含中文视为自然语言回复
+
+if __name__ == "__main__":
+    for task, tools, js in [
+        ("把这段话分类成三个主题之一", 1, True),
+        ("设计一个多智能体代码评审流程", 12, False),
+    ]:
+        print(task[:12], "→", route(task, tools, js))
+</code></pre>
+
+        <h3>TypeScript 版本（复杂度路由器）</h3>
+        <pre><code class="language-typescript">/**
+ * 模型路由器 —— TypeScript
+ */
+interface ModelSpec { name: string; tier: 1 | 2 | 3; maxTools: number }
+
+const MODELS: ModelSpec[] = [
+  { name: "gpt-4o",              tier: 1, maxTools: 50 },
+  { name: "claude-3-5-sonnet",   tier: 2, maxTools: 30 },
+  { name: "deepseek-chat",       tier: 2, maxTools: 30 },
+  { name: "gpt-4o-mini",         tier: 3, maxTools: 10 },
+];
+
+function classifyComplexity(task: string, toolCount: number, requireJson: boolean): number {
+  let score = 0;
+  if (toolCount &gt; 10) score++;
+  if (requireJson) score++;
+  if (/(规划|计划|多步|分析|架构|对比)/.test(task)) score++;
+  if (task.length &gt; 500) score++;
+  return score;
+}
+
+export function route(task: string, toolCount = 0, requireJson = false): string[] {
+  const complexity = Math.min(classifyComplexity(task, toolCount, requireJson), 2);
+  const tiers = { 0: [3, 2, 1], 1: [2, 1], 2: [1] }[complexity];
+  const chain: string[] = [];
+  for (const tier of tiers) {
+    for (const m of MODELS) {
+      if (m.tier === tier &amp;&amp; toolCount &lt;= m.maxTools &amp;&amp; !chain.includes(m.name)) {
+        chain.push(m.name);
+      }
+    }
+  }
+  return chain;
+}
+
+function isValid(out: string): boolean {
+  if (!out.trim()) return false;
+  try { JSON.parse(out); return true; } catch { return /[\u4e00-\u9fff]/.test(out); }
+}
+
+export async function runWithFallback(
+  candidates: string[],
+  call: (model: string) =&gt; Promise&lt;string&gt;,
+): Promise&lt;{ model: string; output: string }&gt; {
+  for (const model of candidates) {
+    const out = await call(model);
+    if (isValid(out)) return { model, output: out };
+  }
+  throw new Error("全部候选失败");
+}
+
+console.log(route("设计一个多智能体代码评审流程", 12, false));
+// → [ "gpt-4o" ]
+</code></pre>
+
+        <h2>国内合规与部署提示</h2>
+        <ul>
+          <li><strong>面向国内公众提供生成式服务</strong>：需通过安全评估、做算法备案，模型应选用已备案的基础模型。</li>
+          <li><strong>数据不出域</strong>：优先国内云厂商或支持国内地域的 OpenAI 兼容端点；出海业务再考虑海外模型。</li>
+          <li><strong>成本敏感场景</strong>：DeepSeek V3 等国产模型在中文 Agent 任务上性价比突出，但需实测函数调用稳定性。</li>
+          <li><strong>私有化部署</strong>：Qwen2.5 等开源模型 + vLLM / SGLang，适合数据敏感及端侧，但需要 GPU 运维能力。</li>
         </ul>
 
         <h2>本章产出</h2>
         <ul>
-          <li>7 款主流模型的三维评分速查表。</li>
-          <li>模型路由策略：按任务复杂度分级。</li>
+          <li>7 款主流模型三维评分速查表（相对量级）。</li>
+          <li>Agent 场景四个特需考察点。</li>
+          <li>复杂度路由器双语言实现（含小模型失败自动升级兜底）。</li>
+          <li>国内合规与部署要点。</li>
         </ul>
 
         <div class="chapter__nav">
-          <a href="../appendices/appendix-a.html" class="chapter__nav-link">← 附录 A</a>
-          <a href="../appendices/appendix-c.html" class="chapter__nav-link">附录 C 术语表 →</a>
+          <a href="appendix-a.html" class="chapter__nav-link">← 附录 A</a>
+          <a href="appendix-c.html" class="chapter__nav-link">附录 C 术语表 →</a>
         </div>
       </section>
     </article>

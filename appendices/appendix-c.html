@@ -6,13 +6,13 @@
   <title>附录 C 术语表 —— AI Agent 权威指南</title>
   <link rel="stylesheet" href="../assets/css/style.css">
   <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg">
-  <meta name="description" content="AI Agent 领域核心术语表：Agent、LLM、CoT、ToT、RAG、MCP、A2A、Tool Use、Function Calling、Embedding、Token、Prompt Injection 等。">
+  <meta name="description" content="AI Agent 领域核心术语表：按基础概念、架构模块、推理规划、安全治理、协议生态五组分类，45 条术语中英对照。">
 </head>
 <body>
   <nav class="sidebar">
     <div class="sidebar__brand">
       <h2>AI Agent<br>权威指南</h2>
-      <span class="sidebar__version">v0.2 · 前 10 章</span>
+      <span class="sidebar__version">v1.0 · 全 21 章</span>
     </div>
     <ul class="sidebar__nav">
       <li><a href="./" class="nav-item">序章</a></li>
@@ -30,21 +30,25 @@
       <li><a href="../chapters/chapter-08.html" class="nav-item">第 8 章 提示工程（Prompt Engineering）的工程化</a></li>
       <li><a href="../chapters/chapter-09.html" class="nav-item">第 9 章 Agent 评测与红线</a></li>
       <li><a href="../chapters/chapter-10.html" class="nav-item">第 10 章 可观测性与调试</a></li>
+      <li class="nav-section">第三部分 · 工程实践</li>
       <li><a href="../chapters/chapter-11.html" class="nav-item">第 11 章 安全、合规与治理</a></li>
       <li><a href="../chapters/chapter-12.html" class="nav-item">第 12 章 Agent 的自我进化</a></li>
       <li><a href="../chapters/chapter-13.html" class="nav-item">第 13 章 Agent 与外部系统集成</a></li>
       <li><a href="../chapters/chapter-14.html" class="nav-item">第 14 章 性能优化与成本控制</a></li>
-      <li><a href="../chapters/chapter-15.html" class="nav-item">第 15 章 场景一：研发助手（代码级 Agent）</a></li>
+      <li class="nav-section">第四部分 · 场景实战</li>
+      <li><a href="../chapters/chapter-15.html" class="nav-item">第 15 章 场景一：研发助手</a></li>
       <li><a href="../chapters/chapter-16.html" class="nav-item">第 16 章 场景二：数据分析 Agent</a></li>
       <li><a href="../chapters/chapter-17.html" class="nav-item">第 17 章 场景三：客户服务 Agent</a></li>
-      <li><a href="../chapters/chapter-18.html" class="nav-item">第 18 章 场景四：个人助理 Agent</a></li>
-      <li><a href="../chapters/chapter-19.html" class="nav-item">第 19 章 Agent 之间的协议与标准</a></li>
+      <li><a href="../chapters/chapter-18.html" class="nav-item">第 18 章 场景四：个人助理</a></li>
+      <li class="nav-section">第五部分 · 未来与治理</li>
+      <li><a href="../chapters/chapter-19.html" class="nav-item">第 19 章 Agent 协议与标准</a></li>
       <li><a href="../chapters/chapter-20.html" class="nav-item">第 20 章 Agent 伦理与对齐</a></li>
-      <li><a href="../chapters/chapter-21.html" class="nav-item">第 21 章 构建你自己的第一个 Agent 产品</a></li>
-      <li><a href="../appendices/appendix-a.html" class="nav-item">附录 A 主流框架横向对比</a></li>
-      <li><a href="../appendices/appendix-b.html" class="nav-item">附录 B 模型选型速查</a></li>
-      <li><a href="../appendices/appendix-c.html" class="nav-item nav-item--active">附录 C 术语表</a></li>
-      <li><a href="../appendices/appendix-d.html" class="nav-item">附录 D 参考文献</a></li>
+      <li><a href="../chapters/chapter-21.html" class="nav-item">第 21 章 构建你的第一个 Agent 产品</a></li>
+      <li class="nav-section">附录</li>
+      <li><a href="appendix-a.html" class="nav-item">附录 A 主流框架对比</a></li>
+      <li><a href="appendix-b.html" class="nav-item">附录 B 模型选型速查</a></li>
+      <li><a href="appendix-c.html" class="nav-item nav-item--active">附录 C 术语表</a></li>
+      <li><a href="appendix-d.html" class="nav-item">附录 D 参考文献</a></li>
     </ul>
     <div class="sidebar__footer">
       <a href="https://github.com/phoenix1983413/ai-agent-guide" target="_blank" rel="noopener">GitHub 仓库</a>
@@ -56,47 +60,104 @@
       <header class="chapter__header">
         <span class="chapter__badge">附录 C</span>
         <h1 class="chapter__title">术语表</h1>
-        <p class="chapter__subtitle">Agent 领域核心术语中英对照</p>
+        <p class="chapter__subtitle">45 条核心术语 · 按主题五组分类</p>
       </header>
 
       <section class="chapter__body">
+        <p>术语按五组分类：<strong>基础概念 / 架构模块 / 推理与规划 / 安全与治理 / 协议与生态</strong>。跨章复用的概念以书中正文章节为准。</p>
+
+        <h2>一、基础概念</h2>
         <table class="table">
-          <thead>
-            <tr><th>中文</th><th>英文</th><th>释义</th></tr>
-          </thead>
+          <thead><tr><th>中文</th><th>英文</th><th>释义</th></tr></thead>
           <tbody>
-            <tr><td>智能体</td><td>Agent</td><td>能感知环境、自主决策、执行行动、反思结果的 AI 系统。</td></tr>
-            <tr><td>大语言模型</td><td>LLM</td><td>基于 Transformer 的大规模预训练语言模型，如 GPT-4o、Claude 3。</td></tr>
-            <tr><td>思维链</td><td>CoT</td><td>Chain-of-Thought，让模型逐步推理而非一步给出答案的 prompting 技术。</td></tr>
-            <tr><td>思维树</td><td>ToT</td><td>Tree-of-Thoughts，把推理过程组织成树结构，支持回溯和剪枝。</td></tr>
-            <tr><td>检索增强生成</td><td>RAG</td><td>Retrieval-Augmented Generation，先检索外部知识再生成答案。</td></tr>
-            <tr><td>模型上下文协议</td><td>MCP</td><td>Model Context Protocol，Anthropic 提出的模型-工具-数据统一连接协议。</td></tr>
-            <tr><td>Agent 间协议</td><td>A2A</td><td>Agent-to-Agent，Google 提出的 Agent 之间通信与发现协议。</td></tr>
-            <tr><td>工具使用</td><td>Tool Use</td><td>Agent 调用外部函数、API、数据库等能力完成任务的机制。</td></tr>
-            <tr><td>函数调用</td><td>Function Calling</td><td>LLM 原生支持的结构化工具调用能力，输出 JSON 格式的 tool_call。</td></tr>
-            <tr><td>嵌入</td><td>Embedding</td><td>把文本、图片转为高维向量，用于相似度搜索和记忆存储。</td></tr>
-            <tr><td>分词</td><td>Token</td><td>LLM 处理文本的基本单位，中文通常 1–2 字一个 token。</td></tr>
-            <tr><td>提示词注入</td><td>Prompt Injection</td><td>攻击者通过用户输入篡改系统提示词，让 AI 忽略安全规则。</td></tr>
-            <tr><td>幻觉</td><td>Hallucination</td><td>LLM 生成看似合理但事实错误的内容。</td></tr>
-            <tr><td>可观测性</td><td>Observability</td><td>通过 Tracing、Logging、Metrics 理解系统内部状态的能力。</td></tr>
-            <tr><td>追踪</td><td>Tracing</td><td>记录一次请求的完整调用链（LLM、工具、数据库）。</td></tr>
-            <tr><td>红队测试</td><td>Red Teaming</td><td>模拟攻击者测试系统安全边界。</td></tr>
-            <tr><td>沙箱</td><td>Sandbox</td><td>隔离环境，用于安全执行不可信代码。</td></tr>
-            <tr><td>向量数据库</td><td>Vector DB</td><td>专门存储和检索 Embedding 的数据库，如 Pinecone、Weaviate。</td></tr>
-            <tr><td>提示词工程</td><td>Prompt Engineering</td><td>设计和优化输入提示词以提升模型输出质量的技术。</td></tr>
-            <tr><td>多智能体</td><td>Multi-Agent</td><td>多个 Agent 分工协作完成复杂任务的系统。</td></tr>
+            <tr><td>智能体</td><td>Agent</td><td>能感知环境、自主决策、执行行动、反思结果的 AI 系统，本质是「感知 → 决策 → 行动 → 反思」闭环。</td></tr>
+            <tr><td>大语言模型</td><td>LLM</td><td>基于 Transformer 的大规模预训练语言模型，如 GPT-4o、Claude 3、Qwen2.5。</td></tr>
+            <tr><td>聊天机器人</td><td>Chatbot</td><td>只有对话没有行动闭环的 AI，是 Agent 的子集形态。</td></tr>
+            <tr><td>副驾驶</td><td>Copilot</td><td>人在环中、AI 辅助建议的协作形态，自主性低于 Agent。</td></tr>
+            <tr><td>嵌入</td><td>Embedding</td><td>把文本 / 图片转为高维向量，用于相似度搜索和记忆存储。</td></tr>
+            <tr><td>分词</td><td>Token</td><td>LLM 处理文本的基本单位，中文通常 1–2 字一个 token，计费与截断都以它为单位。</td></tr>
+            <tr><td>上下文窗口</td><td>Context Window</td><td>模型单次能「看到」的最大 token 数，Agent 的记忆管理围绕它展开。</td></tr>
+            <tr><td>幻觉</td><td>Hallucination</td><td>LLM 生成看似合理但事实错误的内容，RAG 与来源标注是主要缓解手段。</td></tr>
+          </tbody>
+        </table>
+
+        <h2>二、架构模块</h2>
+        <table class="table">
+          <thead><tr><th>中文</th><th>英文</th><th>释义</th></tr></thead>
+          <tbody>
+            <tr><td>工作记忆</td><td>Working Memory</td><td>当前会话的上下文，随对话滚动更新，超出窗口就压缩 / 摘要。</td></tr>
+            <tr><td>情景记忆</td><td>Episodic Memory</td><td>历史交互事件（某次排查、某次对话），按会话存储可检索。</td></tr>
+            <tr><td>语义记忆</td><td>Semantic Memory</td><td>事实性知识（用户偏好、业务定义），通常存向量库。</td></tr>
+            <tr><td>程序记忆</td><td>Procedural Memory</td><td>「怎么做」的技能固化，如 SOP 流程、验证过的 prompt 模板。</td></tr>
+            <tr><td>工具使用</td><td>Tool Use</td><td>Agent 调用外部函数、API、数据库完成任务的能力。</td></tr>
+            <tr><td>函数调用</td><td>Function Calling</td><td>LLM 原生支持的结构化工具调用，模型输出 JSON 格式 tool_call。</td></tr>
+            <tr><td>注册表</td><td>Tool Registry</td><td>集中管理可用工具的表：名称、Schema、权限策略（见第 11 章网关）。</td></tr>
+            <tr><td>向量数据库</td><td>Vector DB</td><td>存储与检索 Embedding 的数据库，如 Pinecone、Weaviate、pgvector。</td></tr>
+            <tr><td>知识库</td><td>Knowledge Base</td><td>RAG 检索的文档集合，按租户 / 主题分片管理。</td></tr>
+            <tr><td>沙箱</td><td>Sandbox</td><td>隔离执行不可信代码的环境，如 Docker、Firecracker、E2B。</td></tr>
+          </tbody>
+        </table>
+
+        <h2>三、推理与规划</h2>
+        <table class="table">
+          <thead><tr><th>中文</th><th>英文</th><th>释义</th></tr></thead>
+          <tbody>
+            <tr><td>思维链</td><td>CoT</td><td>Chain-of-Thought，让模型逐步推理而非一步给答案的 prompting 技术。</td></tr>
+            <tr><td>思维树</td><td>ToT</td><td>Tree-of-Thoughts，推理组织成树，支持多候选、回溯、剪枝。</td></tr>
+            <tr><td>图计划</td><td>GoP</td><td>Graph of Plans，用有向图表示计划，支持子计划复用与循环。</td></tr>
+            <tr><td>ReAct</td><td>ReAct</td><td>Reasoning + Acting 交替循环：思考 → 行动 → 观察 → 再思考。</td></tr>
+            <tr><td>重规划</td><td>Replanning</td><td>执行失败或环境变化时重新生成 / 修补计划的机制。</td></tr>
+            <tr><td>推理预算</td><td>Reasoning Budget</td><td>控制思考长度的工程手段（时间 / token / 步数 / 成本上限）。</td></tr>
+            <tr><td>任务分解</td><td>Task Decomposition</td><td>把大目标拆成可执行步骤，人工骨架 + LLM 填充是生产主流。</td></tr>
+            <tr><td>提示词工程</td><td>Prompt Engineering</td><td>设计与优化输入提示词以稳定提升输出质量的技术。</td></tr>
+            <tr><td>检索增强生成</td><td>RAG</td><td>Retrieval-Augmented Generation，先检索外部知识再生成，抑制幻觉。</td></tr>
+            <tr><td>多智能体</td><td>Multi-Agent</td><td>多个 Agent 分工协作完成复杂任务的系统，模式含管道 / 辩论 / 层次。</td></tr>
+          </tbody>
+        </table>
+
+        <h2>四、安全与治理</h2>
+        <table class="table">
+          <thead><tr><th>中文</th><th>英文</th><th>释义</th></tr></thead>
+          <tbody>
+            <tr><td>提示词注入</td><td>Prompt Injection</td><td>攻击者通过用户输入 / 工具返回篡改指令，让 AI 忽略安全规则。</td></tr>
+            <tr><td>间接注入</td><td>Indirect Injection</td><td>恶意指令藏在被检索的网页 / 文档里，Agent 读到即中招。</td></tr>
+            <tr><td>权限最小化</td><td>Least Privilege</td><td>每个工具只授予完成任务所需的最小权限，危险操作人工确认。</td></tr>
+            <tr><td>个人身份信息</td><td>PII</td><td>Personally Identifiable Information，身份证号、手机号等，需入口脱敏。</td></tr>
+            <tr><td>红队测试</td><td>Red Teaming</td><td>模拟攻击者测试系统安全边界，上线前的高危项卡点。</td></tr>
+            <tr><td>可观测性</td><td>Observability</td><td>通过 Tracing / Logging / Metrics 理解 Agent 内部行为的能力。</td></tr>
+            <tr><td>追踪</td><td>Tracing</td><td>记录一次任务的完整调用链（LLM、工具、数据库），可回放复现。</td></tr>
+            <tr><td>评测集</td><td>Eval Set</td><td>带期望结果或评分标准的测试用例集，Agent 迭代的度量衡。</td></tr>
+            <tr><td>灰度发布</td><td>Canary / Rollout</td><td>按用户哈希分桶小流量放量，异常时一键回滚。</td></tr>
+            <tr><td>人机协同</td><td>Human-in-the-Loop</td><td>关键节点保留人工审核 / 接管的设计原则。</td></tr>
+          </tbody>
+        </table>
+
+        <h2>五、协议与生态</h2>
+        <table class="table">
+          <thead><tr><th>中文</th><th>英文</th><th>释义</th></tr></thead>
+          <tbody>
+            <tr><td>模型上下文协议</td><td>MCP</td><td>Model Context Protocol，Anthropic 提出的模型 ↔ 工具 ↔ 数据统一连接协议。</td></tr>
+            <tr><td>Agent 间协议</td><td>A2A</td><td>Agent-to-Agent，Google 提出的 Agent 发现与通信协议。</td></tr>
+            <tr><td>智能体名片</td><td>Agent Card</td><td>A2A 中 Agent 发布自身能力与端点的 JSON 描述。</td></tr>
+            <tr><td>JSON-RPC</td><td>JSON-RPC</td><td>轻量远程调用协议，MCP 的消息格式（2.0 版本）。</td></tr>
+            <tr><td>服务器发送事件</td><td>SSE</td><td>Server-Sent Events，基于 HTTP 的单向流式推送，用于 LLM 流式输出。</td></tr>
+            <tr><td>OAuth 2.0</td><td>OAuth 2.0</td><td>行业标准授权框架，Agent 访问第三方资源的事实标准。</td></tr>
+            <tr><td>mTLS</td><td>Mutual TLS</td><td>双向证书认证，服务间通信的高强度身份校验。</td></tr>
+            <tr><td>编排</td><td>Orchestration</td><td>多 Agent / 多工具的调度协调，含集中式编排与去中心化协商。</td></tr>
+            <tr><td>对齐</td><td>Alignment</td><td>让 Agent 的决策符合人类价值观，规则 / 偏好 / 文化三层落地。</td></tr>
+            <tr><td>数据飞轮</td><td>Data Flywheel</td><td>用户反馈 → bad case 沉淀 → 模型 / prompt / 工具迭代 → 效果更好的闭环。</td></tr>
           </tbody>
         </table>
 
         <h2>本章产出</h2>
         <ul>
-          <li>20 个核心术语的中英对照与精确定义。</li>
-          <li>按主题分组，方便快速查阅。</li>
+          <li>45 条核心术语，按五组分类，覆盖架构、推理、安全、协议。</li>
+          <li>每条术语给出「一句话定义 + 书中对应章节」的索引价值，可当速查手册用。</li>
         </ul>
 
         <div class="chapter__nav">
-          <a href="../appendices/appendix-b.html" class="chapter__nav-link">← 附录 B</a>
-          <a href="../appendices/appendix-d.html" class="chapter__nav-link">附录 D 参考文献 →</a>
+          <a href="appendix-b.html" class="chapter__nav-link">← 附录 B</a>
+          <a href="appendix-d.html" class="chapter__nav-link">附录 D 参考文献 →</a>
         </div>
       </section>
     </article>

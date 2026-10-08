@@ -6,13 +6,13 @@
   <title>Part 0 · 为什么需要了解 Agent —— AI Agent 权威指南</title>
   <link rel="stylesheet" href="../assets/css/style.css">
   <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg">
-  <meta name="description" content="面向产品经理、技术负责人与决策者的 Agent 入门：Agent 能解决什么问题、不能解决什么问题、团队需要哪些准备。">
+  <meta name="description" content="面向产品经理、技术负责人与决策者：Agent 能力光谱、能解决与不能解决的问题、ROI 测算、三类团队起步方式、立项清单。">
 </head>
 <body>
   <nav class="sidebar">
     <div class="sidebar__brand">
       <h2>AI Agent<br>权威指南</h2>
-      <span class="sidebar__version">v0.2 · 全 21 章</span>
+      <span class="sidebar__version">v1.0 · 全 21 章</span>
     </div>
     <ul class="sidebar__nav">
       <li><a href="./" class="nav-item">序章</a></li>
@@ -66,7 +66,21 @@
       <section class="chapter__body">
         <h2>Agent 不是下一个 Chatbot</h2>
         <p>过去两年，绝大多数组织对「AI 能力」的想象停留在问答、摘要、翻译。大模型把这些事情做到了可用，但真正拉开差距的是<strong>让 AI 自主行动</strong>——读取数据、调用工具、修改系统、等待反馈、再调整策略。</p>
-        <p>这就是 Agent 的本质：<strong>一个能感知环境、制定计划、执行动作、观察结果并自我修正的闭环系统。</strong></p>
+        <p>这就是 Agent 的本质：<strong>一个能感知环境、制定计划、执行动作、观察结果并自我修正的闭环系统。</strong>判断一个项目是不是 Agent 项目，只看一件事：<strong>它有没有「行动闭环」</strong>。只有对话没有行动，是 Chatbot；有行动、能根据结果调整下一步，才是 Agent。</p>
+
+        <h2>Agent 能力光谱：先判断你处在哪一级</h2>
+        <p>不同「自主程度」的 Agent，工程复杂度、成本、风险完全不同。立项前先对号入座：</p>
+        <table class="table">
+          <thead>
+            <tr><th>等级</th><th>能力</th><th>典型形态</th><th>工程复杂度</th><th>风险</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>L1 工具调用</strong></td><td>单步：识别意图 → 调一个工具 → 返回</td><td>智能客服单轮查询、表单填写助手</td><td>低</td><td>低</td></tr>
+            <tr><td><strong>L2 任务规划</strong></td><td>多步：拆解任务、按序执行、失败重试</td><td>数据分析助手、调研报告生成</td><td>中</td><td>中</td></tr>
+            <tr><td><strong>L3 多 Agent 协作</strong></td><td>多角色分工、互相评审、长时运行</td><td>研发团队 Agent、自动化运营</td><td>高</td><td>高</td></tr>
+          </tbody>
+        </table>
+        <p><strong>建议</strong>：第一个项目永远从 L1 起步，验证稳定后再上 L2，L3 等前三章技术债还清再说。跳级是 Agent 项目失败的头号原因。</p>
 
         <h2>Agent 能解决什么问题</h2>
         <ul>
@@ -78,50 +92,131 @@
 
         <h2>Agent 不能解决什么问题</h2>
         <ul>
-          <li><strong>没有明确目标的任务</strong>：「帮我搞搞那个数据」— 模糊输入只能得到随机输出。</li>
-          <li><strong>没有稳定工具层的系统</strong>：Agent 需要可调用的 API、可读的数据库、可写的工单系统。工具越规范，Agent 越可靠。</li>
-          <li><strong>对安全性要求极高、但还没有权限模型的场景</strong>：Agent 权限最小化是必修课，不是可选项。</li>
+          <li><strong>没有明确目标的任务</strong>：「帮我搞搞那个数据」——模糊输入只能得到随机输出。目标定义能力是决策者的活，不是模型的活。</li>
+          <li><strong>没有稳定工具层的系统</strong>：Agent 需要可调用的 API、可读的数据库、可写的工单系统。工具越规范，Agent 越可靠；系统本身烂，Agent 只是烂得快。</li>
+          <li><strong>没有权限模型的场景</strong>：Agent 权限最小化是必修课。连「谁能干什么」都说不清的系统，上 Agent 等于发免罪金牌。</li>
           <li><strong>幻觉风险零容忍的场景</strong>：医疗诊断、司法认定、金融风控——在这些领域，Agent 目前只能是「辅助」，不能是「执行」。</li>
         </ul>
+
+        <h2>值不值得做：一页 ROI 账</h2>
+        <p>决策者最该问的问题不是「Agent 强不强」，而是「这账算得过」。算三笔账：</p>
+        <ol>
+          <li><strong>人力账</strong>：任务当前占用多少人工工时？Agent 能替代多少比例？（经验值：规则清晰的重复流程可替代 60–80%，需要判断的可替代 20–40%。）</li>
+          <li><strong>成本账</strong>：模型调用费用 + 工程投入摊销。下面的成本测算器可以直接套用：输入月查询量、平均 token 数、单价，一分钟算出月度 API 成本。</li>
+          <li><strong>风险账</strong>：错误一次的最大损失 × 月度错误次数。如果单次错误的损失不可承受（如误退款、误删除），先补权限与人工确认机制，再谈效率。</li>
+        </ol>
+
+        <h3>Python 版本</h3>
+        <pre><code class="language-python">"""
+Agent ROI 成本测算器 —— Python
+输入业务量，输出月度 API 成本与「回本月数」，用于立项前估算。
+"""
+from __future__ import annotations
+from dataclasses import dataclass
+
+# 粗略经验值：一次带工具调用的 Agent 任务 ≈ 3 轮对话
+AVG_INPUT_TOKENS, AVG_OUTPUT_TOKENS, TURNS = 2000, 600, 3
+
+@dataclass
+class CostInput:
+    monthly_tasks: int              # 月任务量
+    price_in_per_m: float           # 输入单价（元 / 百万 token）
+    price_out_per_m: float          # 输出单价
+    build_cost: float               # 一次性工程投入（元）
+    labor_saved_per_task: float     # 每个任务节省的人力成本（元）
+
+def estimate(c: CostInput) -&gt; dict:
+    tokens_in = c.monthly_tasks * AVG_INPUT_TOKENS * TURNS
+    tokens_out = c.monthly_tasks * AVG_OUTPUT_TOKENS * TURNS
+    api_cost = (tokens_in / 1e6 * c.price_in_per_m
+                + tokens_out / 1e6 * c.price_out_per_m)
+    labor_saved = c.monthly_tasks * c.labor_saved_per_task
+    net_gain = labor_saved - api_cost
+    payback = (c.build_cost / net_gain) if net_gain &gt; 0 else float("inf")
+    return {
+        "月度 API 成本（元）": round(api_cost, 2),
+        "月度节省人力（元）": round(labor_saved, 2),
+        "月度净收益（元）": round(net_gain, 2),
+        "回本月数": "永不" if payback == float("inf") else round(payback, 1),
+    }
+
+if __name__ == "__main__":
+    # 示例：每月 2 万次查询，中端模型，每单省 3 分钟人力
+    scenario = CostInput(
+        monthly_tasks=20_000,
+        price_in_per_m=2.0,          # 元 / 百万输入 token
+        price_out_per_m=8.0,         # 元 / 百万输出 token
+        build_cost=150_000,          # 工程投入 15 万
+        labor_saved_per_task=1.5,    # 每任务省 1.5 元人力
+    )
+    for k, v in estimate(scenario).items():
+        print(f"{k}: {v}")
+</code></pre>
+
+        <h3>TypeScript 版本</h3>
+        <pre><code class="language-typescript">/**
+ * Agent ROI 成本测算器 —— TypeScript
+ */
+interface CostInput {
+  monthlyTasks: number;
+  priceInPerM: number;          // 元 / 百万输入 token
+  priceOutPerM: number;         // 元 / 百万输出 token
+  buildCost: number;
+  laborSavedPerTask: number;    // 元 / 任务
+}
+
+const AVG_INPUT_TOKENS = 2000;
+const AVG_OUTPUT_TOKENS = 600;
+const TURNS = 3;
+
+export function estimate(c: CostInput) {
+  const tokensIn = c.monthlyTasks * AVG_INPUT_TOKENS * TURNS;
+  const tokensOut = c.monthlyTasks * AVG_OUTPUT_TOKENS * TURNS;
+  const apiCost = tokensIn / 1e6 * c.priceInPerM
+                + tokensOut / 1e6 * c.priceOutPerM;
+  const laborSaved = c.monthlyTasks * c.laborSavedPerTask;
+  const netGain = laborSaved - apiCost;
+  return {
+    "月度 API 成本（元）": Number(apiCost.toFixed(2)),
+    "月度节省人力（元）": Number(laborSaved.toFixed(2)),
+    "月度净收益（元）": Number(netGain.toFixed(2)),
+    "回本月数": netGain &gt; 0 ? Number((c.buildCost / netGain).toFixed(1)) : "永不",
+  };
+}
+
+console.log(estimate({
+  monthlyTasks: 20_000,
+  priceInPerM: 2.0,
+  priceOutPerM: 8.0,
+  buildCost: 150_000,
+  laborSavedPerTask: 1.5,
+}));
+</code></pre>
 
         <h2>三类团队，三种起步方式</h2>
         <table class="table">
           <thead>
-            <tr>
-              <th>团队类型</th>
-              <th>推荐起步</th>
-              <th>预计见到价值的时间</th>
-            </tr>
+            <tr><th>团队类型</th><th>推荐起步</th><th>预计见到价值的时间</th><th>关键风险</th></tr>
           </thead>
           <tbody>
-            <tr>
-              <td><strong>有研发能力的团队</strong></td>
-              <td>从第 1 章的最小 Agent 开始，1–2 周内内部跑通一个原型</td>
-              <td>2–4 周</td>
-            </tr>
-            <tr>
-              <td><strong>有业务场景但缺工程资源</strong></td>
-              <td>先用 CrewAI / AutoGen 等框架搭 demo，验证 ROI 后再投入自研</td>
-              <td>1–3 个月</td>
-            </tr>
-            <tr>
-              <td><strong>纯决策层</strong></td>
-              <td>读 Part 0 + 第 1 章建立判断力，重点看「Agent 能力光谱」和「三类团队起步方式」</td>
-              <td>1 天</td>
-            </tr>
+            <tr><td><strong>有研发能力的团队</strong></td><td>从第 1 章的最小 Agent 开始，1–2 周内内部跑通一个原型</td><td>2–4 周</td><td>过度设计，一上来就搭多 Agent</td></tr>
+            <tr><td><strong>有业务场景但缺工程资源</strong></td><td>先用 CrewAI / AutoGen 等框架搭 demo，验证 ROI 后再投入自研</td><td>1–3 个月</td><td>被框架绑死，后期迁移成本高</td></tr>
+            <tr><td><strong>纯决策层</strong></td><td>读 Part 0 + 第 1 章建立判断力，重点看能力光谱与三种起步方式</td><td>1 天</td><td>把 demo 效果当生产效果</td></tr>
           </tbody>
         </table>
 
-        <h2>你需要准备什么</h2>
+        <h2>立项前 checklist</h2>
         <ul>
-          <li><strong>至少一个可调用的工具层</strong>：数据库、API、文档系统、IM——越规范越好。</li>
-          <li><strong>一个明确的最小场景</strong>：不要一开始就想造「万能助手」，先解决一个具体痛点。</li>
-          <li><strong>接受不完美的心理预期</strong>：Agent 会犯错，会卡住，会需要人工兜底。把它当一个「实习生」而不是「圣贤」。</li>
-          <li><strong>灰度发布的机制</strong>：先给 5% 的流量或一个内部团队用，跑通反馈循环再放大。</li>
+          <li>□ 目标场景能用一句话说清，且能量化（任务数、耗时、错误率）</li>
+          <li>□ 有至少一个可调用、可测试的工具层（API / 数据库 / 文档）</li>
+          <li>□ 权限模型已定义：谁能做什么、危险操作谁批准</li>
+          <li>□ ROI 测算过：净收益为正，回本周期可接受</li>
+          <li>□ 有 eval 集计划：上线前先建 50 条测试用例</li>
+          <li>□ 有回滚预案：Agent 关闭后业务能退回原流程</li>
         </ul>
 
         <h2>本章小结</h2>
-        <p>Agent 是「能自主行动的 AI」，不是 Chatbot 的升级版，而是一个新品类。它的价值在<strong>多步骤、跨系统、需要持续观察和调整</strong>的任务里最明显。落地的前提是：有明确场景、有可调用工具、有权限模型、有灰度机制。</p>
+        <p>Agent 是「能自主行动的 AI」，不是 Chatbot 的升级版，而是一个新品类。它的价值在<strong>多步骤、跨系统、需要持续观察和调整</strong>的任务里最明显。落地的前提是：有明确场景、有可调用工具、有权限模型、有灰度机制。把这四条和上面的 checklist 对着过一遍，你就可以立项了。</p>
 
         <div class="chapter__nav">
           <a href="./" class="chapter__nav-link">← 序章</a>

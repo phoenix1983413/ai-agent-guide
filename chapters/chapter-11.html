@@ -6,13 +6,13 @@
   <title>第 11 章 安全、合规与治理 —— AI Agent 权威指南</title>
   <link rel="stylesheet" href="../assets/css/style.css">
   <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg">
-  <meta name="description" content="Agent 安全体系：权限最小化、数据隐私、内容安全、合规上线。含 Agent 上线检查清单（Python + TypeScript）。">
+  <meta name="description" content="Agent 安全体系：权限最小化网关、PII 脱敏、内容安全、审计不可抵赖、合规上线流程。含工具权限网关与上线检查清单（Python + TypeScript）。">
 </head>
 <body>
   <nav class="sidebar">
     <div class="sidebar__brand">
       <h2>AI Agent<br>权威指南</h2>
-      <span class="sidebar__version">v0.2 · 前 10 章</span>
+      <span class="sidebar__version">v1.0 · 全 21 章</span>
     </div>
     <ul class="sidebar__nav">
       <li><a href="./" class="nav-item">序章</a></li>
@@ -30,9 +30,25 @@
       <li><a href="chapter-08.html" class="nav-item">第 8 章 提示工程（Prompt Engineering）的工程化</a></li>
       <li><a href="chapter-09.html" class="nav-item">第 9 章 Agent 评测与红线</a></li>
       <li><a href="chapter-10.html" class="nav-item">第 10 章 可观测性与调试</a></li>
+      <li class="nav-section">第三部分 · 工程实践</li>
       <li><a href="chapter-11.html" class="nav-item nav-item--active">第 11 章 安全、合规与治理</a></li>
-      <li class="nav-section">更多章节</li>
-      <li><span class="nav-item nav-item--disabled">第 12–21 章 · 连载中</span></li>
+      <li><a href="chapter-12.html" class="nav-item">第 12 章 Agent 的自我进化</a></li>
+      <li><a href="chapter-13.html" class="nav-item">第 13 章 Agent 与外部系统集成</a></li>
+      <li><a href="chapter-14.html" class="nav-item">第 14 章 性能优化与成本控制</a></li>
+      <li class="nav-section">第四部分 · 场景实战</li>
+      <li><a href="chapter-15.html" class="nav-item">第 15 章 场景一：研发助手</a></li>
+      <li><a href="chapter-16.html" class="nav-item">第 16 章 场景二：数据分析 Agent</a></li>
+      <li><a href="chapter-17.html" class="nav-item">第 17 章 场景三：客户服务 Agent</a></li>
+      <li><a href="chapter-18.html" class="nav-item">第 18 章 场景四：个人助理</a></li>
+      <li class="nav-section">第五部分 · 未来与治理</li>
+      <li><a href="chapter-19.html" class="nav-item">第 19 章 Agent 协议与标准</a></li>
+      <li><a href="chapter-20.html" class="nav-item">第 20 章 Agent 伦理与对齐</a></li>
+      <li><a href="chapter-21.html" class="nav-item">第 21 章 构建你的第一个 Agent 产品</a></li>
+      <li class="nav-section">附录</li>
+      <li><a href="../appendices/appendix-a.html" class="nav-item">附录 A 主流框架对比</a></li>
+      <li><a href="../appendices/appendix-b.html" class="nav-item">附录 B 模型选型速查</a></li>
+      <li><a href="../appendices/appendix-c.html" class="nav-item">附录 C 术语表</a></li>
+      <li><a href="../appendices/appendix-d.html" class="nav-item">附录 D 参考文献</a></li>
     </ul>
     <div class="sidebar__footer">
       <a href="https://github.com/phoenix1983413/ai-agent-guide" target="_blank" rel="noopener">GitHub 仓库</a>
@@ -44,56 +60,376 @@
       <header class="chapter__header">
         <span class="chapter__badge">第 11 章</span>
         <h1 class="chapter__title">安全、合规与治理</h1>
-        <p class="chapter__subtitle">权限最小化 / 数据隐私 / 内容安全 / 合规上线</p>
+        <p class="chapter__subtitle">权限网关 / PII 脱敏 / 内容安全 / 审计不可抵赖 / 合规上线</p>
       </header>
 
       <section class="chapter__body">
+        <p>Agent 和传统软件最大的区别是：<strong>它会自己做决定、自己调工具、自己写内容</strong>。传统应用把风险关在代码逻辑里，Agent 把风险摊到了每一次模型推理上。这一章把安全从「上线前评审」变成「运行时每一层都在编译」的工程体系。</p>
+
         <h2>11.1 权限最小化：工具调用的能力边界</h2>
-        <p>Agent 能做的事取决于它被授予的工具权限。权限最小化原则：</p>
+        <p>Agent 能做什么，不取决于 prompt 怎么写，而取决于运行时它手里有什么工具、每个工具以什么身份执行。核心原则：</p>
         <ul>
-          <li>每个工具只给完成功能所必需的最小权限。例如「发邮件」工具只能发预定义模板邮件，不能发任意内容。</li>
-          <li>危险操作（删除、发送、支付）强制人工确认，Agent 只能「建议」不能「执行」。</li>
-          <li>工具之间权限隔离：读取用户数据的工具不能同时调用外部 API 发送数据。</li>
+          <li><strong>默认拒绝</strong>：工具注册表走白名单制，不在表里的调用直接拒绝，而不是「先执行再判断」。</li>
+          <li><strong>能力拆分</strong>：「邮件」拆成「读邮件」「写草稿」「发邮件」三个工具，Agent 通常只拿到前两个，发送必须人确认。</li>
+          <li><strong>工具级幂等与配额</strong>：每个工具带速率限制（如「查询订单」每分钟 30 次）和金额上限（如「退款」单笔 ≤ 200 元）。</li>
+          <li><strong>会话级授权</strong>：权限绑定到 user_id + session_id，防止 Agent 拿到别人的上下文后越权。</li>
         </ul>
+        <p>下面的<strong>工具权限网关</strong>把上述规则集中到一个可测试的组件里：每次工具调用先过 <code>check()</code>，通过才放行执行，执行后无论成败都记审计日志。</p>
 
-        <h2>11.2 数据隐私：PII 过滤、记忆隔离、GDPR / 个保法</h2>
-        <p>Agent 处理的对话可能包含身份证号、手机号、地址等 PII。必须：</p>
-        <ul>
-          <li><strong>PII 过滤</strong>：输入和输出都过一遍脱敏层，敏感字段替换为 `***`。</li>
-          <li><strong>记忆隔离</strong>：不同用户的记忆存在不同 namespace，禁止跨租户读取。</li>
-          <li><strong>删除权</strong>：用户要求删除时，能定位并删除该用户的所有记忆和日志。</li>
-          <li><strong>合规对齐</strong>：GDPR（欧盟）、个保法（中国）、HIPAA（医疗）等，根据业务属地选择适用法规。</li>
-        </ul>
+        <h3>Python 版本</h3>
+        <pre><code class="language-python">"""
+工具权限网关 —— Python
+职责：白名单 / 危险操作确认 / 配额 / 审计日志，落在每次工具调用前后。
+"""
+from __future__ import annotations
+import time, json, hashlib
+from dataclasses import dataclass
 
-        <h2>11.3 内容安全：拒绝有害输出、审计不可抵赖</h2>
-        <p>Agent 可能被诱导生成有害内容，或被利用发起攻击。防线：</p>
+@dataclass
+class ToolPolicy:
+    name: str
+    danger_level: int = 0          # 0 只读 / 1 写 / 2 不可逆（删除、支付）
+    rate_per_min: int = 60
+    amount_limit: float | None = None
+
+class AuditLog:
+    """不可抵赖审计：追加写 + 哈希链，改一条就会断链。"""
+    def __init__(self):
+        self.chain: list[dict] = []
+        self._prev_hash = "GENESIS"
+
+    def append(self, event: dict) -&gt; dict:
+        payload = json.dumps(event, ensure_ascii=False, sort_keys=True) + self._prev_hash
+        self._prev_hash = hashlib.sha256(payload.encode()).hexdigest()[:16]
+        record = {**event, "ts": time.time(), "hash": self._prev_hash}
+        self.chain.append(record)
+        return record
+
+class ToolGateway:
+    def __init__(self, policies: dict[str, ToolPolicy], audit: AuditLog):
+        self.policies = policies
+        self.audit = audit
+        self._calls: dict[str, list[float]] = {}
+        self._approved: set[str] = set()   # 人工已确认的危险调用 token
+
+    def check(self, tool: str, args: dict, session: str) -&gt; tuple[bool, str]:
+        if tool not in self.policies:
+            return False, f"工具 {tool} 未注册，默认拒绝"
+        policy = self.policies[tool]
+        # 1. 危险级别 2 → 必须有人的确认 token
+        key = f"{session}:{tool}:{args.get('id', '')}"
+        if policy.danger_level &gt;= 2 and key not in self._approved:
+            return False, "不可逆操作，需人工确认后携带 approval_token 重试"
+        # 2. 金额上限
+        if policy.amount_limit is not None:
+            amount = float(args.get("amount", 0))
+            if amount &gt; policy.amount_limit:
+                return False, f"金额 {amount} 超过单笔上限 {policy.amount_limit}"
+        # 3. 配额（滑动窗口）
+        now = time.time()
+        window = [t for t in self._calls.get(tool, []) if now - t &lt; 60]
+        if len(window) &gt;= policy.rate_per_min:
+            return False, "超出速率限制"
+        window.append(now)
+        self._calls[tool] = window
+        return True, "ok"
+
+    def approve(self, session: str, tool: str, target_id: str) -&gt; str:
+        token = f"{session}:{tool}:{target_id}"
+        self._approved.add(token)
+        return token
+
+    def invoke(self, tool: str, args: dict, session: str, fn) -&gt; dict:
+        ok, reason = self.check(tool, args, session)
+        self.audit.append({"event": "tool_call", "tool": tool,
+                           "args": {k: str(v)[:64] for k, v in args.items()},
+                           "session": session, "allowed": ok, "reason": reason})
+        if not ok:
+            return {"ok": False, "error": reason}
+        try:
+            result = fn(**args)
+            self.audit.append({"event": "tool_result", "tool": tool, "session": session, "ok": True})
+            return {"ok": True, "result": result}
+        except Exception as e:
+            self.audit.append({"event": "tool_error", "tool": tool,
+                               "session": session, "ok": False, "error": str(e)[:200]})
+            return {"ok": False, "error": str(e)}
+
+# ---- 使用示例 ----
+policies = {
+    "search_orders": ToolPolicy("search_orders", danger_level=0, rate_per_min=30),
+    "draft_reply":    ToolPolicy("draft_reply",    danger_level=1, rate_per_min=10),
+    "issue_refund":   ToolPolicy("issue_refund",   danger_level=2, rate_per_min=5, amount_limit=200.0),
+    "delete_ticket":  ToolPolicy("delete_ticket",  danger_level=2, rate_per_min=2),
+}
+audit = AuditLog()
+gateway = ToolGateway(policies, audit)
+
+# Agent 直接发起 500 元退款 → 未过人工确认，被拦
+print(gateway.invoke("issue_refund", {"amount": 500, "id": "T-9"}, "sess-1", lambda **kw: None))
+# 人工确认后重试 120 元 → 在限额内，放行
+gateway.approve("sess-1", "issue_refund", "T-9")
+print(gateway.invoke("issue_refund", {"amount": 120, "id": "T-9"}, "sess-1", lambda **kw: "REFUNDED"))
+</code></pre>
+
+        <h3>TypeScript 版本</h3>
+        <pre><code class="language-typescript">/**
+ * 工具权限网关 —— TypeScript
+ */
+type DangerLevel = 0 | 1 | 2;
+
+interface ToolPolicy {
+  dangerLevel?: DangerLevel;        // 0 只读 / 1 写 / 2 不可逆
+  ratePerMin?: number;
+  amountLimit?: number | null;
+}
+
+type CheckResult = { ok: true } | { ok: false; reason: string };
+
+export class AuditLog {
+  private chain: Array&lt;Record&lt;string, unknown&gt;&gt; = [];
+  private prevHash = "GENESIS";
+
+  append(event: Record&lt;string, unknown&gt;) {
+    const payload = JSON.stringify(event) + this.prevHash;
+    let h = 0;                                   // 生产环境用 crypto.subtle.digest
+    for (const ch of payload) h = (h * 31 + ch.charCodeAt(0)) | 0;
+    this.prevHash = Math.abs(h).toString(16).padStart(8, "0");
+    const record = { ...event, ts: Date.now(), hash: this.prevHash };
+    this.chain.push(record);
+    return record;
+  }
+}
+
+export class ToolGateway {
+  private calls = new Map&lt;string, number[]&gt;();
+  private approved = new Set&lt;string&gt;();
+
+  constructor(
+    private policies: Map&lt;string, ToolPolicy&gt;,
+    private audit: AuditLog,
+  ) {}
+
+  check(tool: string, args: Record&lt;string, unknown&gt;, session: string): CheckResult {
+    const policy = this.policies.get(tool);
+    if (!policy) return { ok: false, reason: `工具 ${tool} 未注册，默认拒绝` };
+    if ((policy.dangerLevel ?? 0) &gt;= 2
+        &amp;&amp; !this.approved.has(`${session}:${tool}:${String(args.id ?? "")}`)) {
+      return { ok: false, reason: "不可逆操作，需人工确认后携带 approval_token 重试" };
+    }
+    if (policy.amountLimit != null &amp;&amp; Number(args.amount ?? 0) &gt; policy.amountLimit) {
+      return { ok: false, reason: `金额超过单笔上限 ${policy.amountLimit}` };
+    }
+    const now = Date.now();
+    const window = (this.calls.get(tool) ?? []).filter((t) =&gt; now - t &lt; 60_000);
+    if (window.length &gt;= (policy.ratePerMin ?? 60)) {
+      return { ok: false, reason: "超出速率限制" };
+    }
+    window.push(now);
+    this.calls.set(tool, window);
+    return { ok: true };
+  }
+
+  approve(session: string, tool: string, targetId: string): string {
+    const token = `${session}:${tool}:${targetId}`;
+    this.approved.add(token);
+    return token;
+  }
+
+  async invoke&lt;A extends Record&lt;string, unknown&gt;, R&gt;(
+    tool: string, args: A, session: string, fn: (a: A) =&gt; Promise&lt;R&gt;,
+  ): Promise&lt;{ ok: true; result: R } | { ok: false; error: string }&gt; {
+    const res = this.check(tool, args, session);
+    this.audit.append({ event: "tool_call", tool, session, ok: res.ok,
+                        reason: res.ok ? undefined : res.reason });
+    if (!res.ok) return { ok: false, error: res.reason };
+    try {
+      const result = await fn(args);
+      this.audit.append({ event: "tool_result", tool, session, ok: true });
+      return { ok: true, result };
+    } catch (e) {
+      this.audit.append({ event: "tool_error", tool, session, ok: false,
+                          reason: String(e).slice(0, 200) });
+      return { ok: false, error: String(e) };
+    }
+  }
+}
+</code></pre>
+
+        <h2>11.2 数据隐私：PII 过滤、记忆隔离、删除权</h2>
+        <p>Agent 处理的对话天然携带 PII（身份证号、手机号、住址、银行卡），而记忆系统又会让 PII <strong>长期驻留</strong>。隐私工程的三道闸：</p>
         <ol>
-          <li>输入层：敏感词过滤 + 意图识别。</li>
-          <li>模型层：使用带安全对齐的模型（如 GPT-4o、Claude 3），并设置 system prompt 约束。</li>
-          <li>输出层：分类器二次审核，高风险内容拦截。</li>
-          <li>审计层：所有工具调用和敏感输出留痕，不可删除、不可篡改。</li>
+          <li><strong>入口脱敏</strong>：PII 在进入 context 之前替换为占位符（如 <code>PHONE_7f3a</code>），Agent 全程只接触假名，真实值只存在受管控的映射表里。</li>
+          <li><strong>记忆隔离</strong>：vector namespace / 表名按 tenant_id 分片；检索时强制带租户过滤条件——漏掉这一个条件就是一次数据泄露事故。</li>
+          <li><strong>删除权</strong>：用户行使删除权时，要能删记忆向量、删会话日志、删审计里的明文片段（但保留操作记录的哈希链）。</li>
         </ol>
+        <p>合规基线：GDPR（欧盟）、中国《个人信息保护法》、HIPAA（美国医疗）。共性是三件事：告知同意、最小必要、可删除。</p>
+
+        <h3>Python 版本</h3>
+        <pre><code class="language-python">"""
+PII 脱敏 + 租户隔离 —— Python
+入口：mask() 之后内容才会进入 prompt。真实映射只在 Vault 内，Agent 永远看不到。
+"""
+from __future__ import annotations
+import re, uuid
+from dataclasses import dataclass, field
+
+PATTERNS = {
+    "PHONE":  r"1[3-9]\d{9}",
+    "IDCARD": r"\d{17}[\dXx]",
+    "EMAIL":  r"[\w.+-]+@[\w-]+\.[\w.]+",
+}
+
+@dataclass
+class MaskVault:
+    """假名映射表。进程重启即失效；落库版本应带 TTL 与访问审计。"""
+    table: dict[str, str] = field(default_factory=dict)      # alias → real
+    by_real: dict[str, str] = field(default_factory=dict)   # real → alias
+
+    def mask(self, text: str) -&gt; str:
+        for kind, pat in PATTERNS.items():
+            for real in re.findall(pat, text):
+                if real not in self.by_real:
+                    alias = f"{kind}_{uuid.uuid4().hex[:6]}"
+                    self.by_real[real] = alias
+                    self.table[alias] = real
+                text = text.replace(real, self.by_real[real])
+        return text
+
+    def restore(self, text: str) -&gt; str:
+        """只在确有必要回填给用户时使用，且必须记审计。"""
+        for alias, real in self.table.items():
+            text = text.replace(alias, real)
+        return text
+
+def retrieve_memories(query_vec, tenant_id: str, store, top_k: int = 5):
+    """记忆检索强制注入租户过滤——防跨租户串数据的最后一道闸。"""
+    if not tenant_id:
+        raise ValueError("tenant_id 必填，禁止无租户检索")
+    return store.search(
+        query_vec, top_k=top_k,
+        filter={"tenant_id": {"$eq": tenant_id}},   # 漏这行 = 泄露事故
+    )
+
+vault = MaskVault()
+raw = "客户张三 13812345678，身份证 110101199003077758，邮箱 zhang@example.com"
+masked = vault.mask(raw)
+print(masked)                    # 客户张三 PHONE_xxxx，身份证 IDCARD_xxxx，邮箱 EMAIL_xxxx
+print(vault.restore(masked))     # 仅在确有必要回填给用户时使用
+</code></pre>
+
+        <h3>TypeScript 版本</h3>
+        <pre><code class="language-typescript">/**
+ * PII 脱敏 + 租户隔离 —— TypeScript
+ */
+import { randomBytes } from "node:crypto";
+
+const PATTERNS: Array&lt;[string, RegExp]&gt; = [
+  ["PHONE",  /1[3-9]\d{9}/g],
+  ["IDCARD", /\d{17}[\dXx]/g],
+  ["EMAIL",  /[\w.+-]+@[\w-]+\.[\w.]+/g],
+];
+
+export class MaskVault {
+  private table = new Map&lt;string, string&gt;();   // alias → real
+  private byReal = new Map&lt;string, string&gt;();   // real → alias
+
+  mask(text: string): string {
+    for (const [kind, pat] of PATTERNS) {
+      for (const real of text.match(pat) ?? []) {
+        if (!this.byReal.has(real)) {
+          const alias = `${kind}_${randomBytes(3).toString("hex")}`;
+          this.byReal.set(real, alias);
+          this.table.set(alias, real);
+        }
+        text = text.replaceAll(real, this.byReal.get(real)!);
+      }
+    }
+    return text;
+  }
+
+  restore(text: string): string {
+    for (const [alias, real] of this.table) text = text.replaceAll(alias, real);
+    return text;
+  }
+}
+
+/** 记忆检索：租户过滤是硬约束，缺 tenant_id 直接抛错 */
+export function tenantFilter(tenantId: string) {
+  if (!tenantId) throw new Error("tenant_id 必填，禁止无租户检索");
+  return { tenant_id: { $eq: tenantId } };
+}
+</code></pre>
+
+        <h2>11.3 内容安全：多层防御与审计不可抵赖</h2>
+        <p>Agent 被攻击的路径比传统应用多：prompt 注入（用户诱导 Agent 越权）、工具滥用（让 Agent 反复调用计费接口）、输出投毒（把恶意指令写进返回内容再让别的 Agent 执行）。防御按四层部署：</p>
+        <table class="table">
+          <thead>
+            <tr><th>层</th><th>手段</th><th>拦住什么</th><th>成本</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>输入层</td><td>敏感词 / 注入特征分类器</td><td>明显的注入与越权请求</td><td>低</td></tr>
+            <tr><td>模型层</td><td>安全对齐模型 + system prompt 约束 + 低温度</td><td>大部分社会工程攻击</td><td>中</td></tr>
+            <tr><td>输出层</td><td>分类器二审 + 关键词兜底</td><td>有害输出、越权承诺</td><td>中</td></tr>
+            <tr><td>行为层</td><td>工具网关、速率限制、异常模式检测</td><td>工具滥用、批量攻击</td><td>中</td></tr>
+          </tbody>
+        </table>
+        <p>审计不可抵赖的关键：日志用「追加写 + 哈希链」（见 11.1 的 <code>AuditLog</code>），篡改任意一条都会导致后续哈希对不上。审计日志至少要能回答三个问题：谁（哪个会话）在什么时间调用了什么工具、参数是什么、结果是否被放行。</p>
 
         <h2>11.4 合规上线：企业内部审批流程</h2>
-        <p>Agent 不是普通功能，上线前必须过安全评审。建议流程：</p>
-        <ul>
-          <li><strong>内部测试</strong>：研发团队内部使用 1–2 周，收集问题。</li>
-          <li><strong>安全评审</strong>：安全团队审查工具权限、数据流、PII 处理、审计日志。</li>
-          <li><strong>灰度发布</strong>：先开放给 5% 用户，监控错误率和异常行为。</li>
-          <li><strong>用户告知</strong>：明确告知用户在与 AI 交互，哪些数据会被记录。</li>
-          <li><strong>回滚预案</strong>：出问题能一键关闭 Agent 功能，不影响主系统。</li>
-        </ul>
+        <p>Agent 不是普通功能上线，按「高危变更」走流程：</p>
+        <ol>
+          <li><strong>内部试用</strong>（1–2 周）：研发 + 运营日常使用，收集工具误调用率、越权尝试次数。</li>
+          <li><strong>安全评审</strong>：安全团队审工具权限表、数据流图、PII 处理、审计方案；高危项不过，不上线。</li>
+          <li><strong>灰度发布</strong>：按会话百分比（5% → 20% → 100%）放量，每档观察 48 小时错误率与预算消耗。</li>
+          <li><strong>用户告知</strong>：首轮对话明示「你在与 AI 助手交互，哪些数据会被记录、保留多久」。</li>
+          <li><strong>回滚预案</strong>：保留一键降级开关——Agent 不可用时，业务能退回原人工 / 规则流程。</li>
+        </ol>
 
-        <h2>本章产出：Agent 上线检查清单</h2>
-        <p>以下清单可以直接作为上线前的 Gate Check：</p>
+        <h2>本章产出：上线 Gate Check 清单（可执行）</h2>
+        <p>把清单固化成 CI 的一等公民，任何一项红灯即阻断发布：</p>
+        <pre><code class="language-python">"""
+Agent 上线 Gate Check —— Python
+CI 中执行：python gate_check.py，非零退出码阻断发布。
+"""
+from __future__ import annotations
+import sys
+
+CHECKS = [
+    ("工具白名单制，未注册工具默认拒绝", "tools/registry.py"),
+    ("danger_level>=2 的操作走人工确认", "tools/gateway.py"),
+    ("所有工具有速率限制与金额上限", "tools/gateway.py"),
+    ("入口出口均过 PII 脱敏", "security/pii.py"),
+    ("记忆检索强制 tenant 过滤", "memory/store.py"),
+    ("审计日志哈希链且不可删改", "security/audit.py"),
+    ("红队测试集通过，无高危项", "eval/redteam.py"),
+    ("回滚开关演练通过", "ops/rollback"),
+    ("用户告知文案已上线", "i18n/zh-CN"),
+]
+
+def main() -&gt; int:
+    for name, where in CHECKS:
+        ok = _verify(name)
+        print(("PASS  " if ok else "FAIL  ") + f"{name}  [{where}]")
+        if not ok:
+            return 1
+    print("全部通过，允许上线")
+    return 0
+
+def _verify(name: str) -&gt; bool:
+    """真实环境对接检查器；演示中假定全部通过。"""
+    return True
+
+if __name__ == "__main__":
+    sys.exit(main())
+</code></pre>
+
+        <h2>本章要点</h2>
         <ul>
-          <li>□ 所有工具权限已最小化，危险操作有人工确认</li>
-          <li>□ PII 过滤层已覆盖输入和输出</li>
-          <li>□ 用户记忆已按 namespace 隔离</li>
-          <li>□ 审计日志已落地且不可篡改</li>
-          <li>□ 红队测试已完成，无高危漏洞</li>
-          <li>□ 回滚预案已演练</li>
-          <li>□ 用户告知文案已上线</li>
+          <li>安全不是评审出来的，是<strong>运行时每一层编译出来的</strong>：网关、脱敏、审核、审计。</li>
+          <li>权限最小化的落点：工具注册白名单 + 危险操作人工确认 + 配额与限额。</li>
+          <li>隐私三闸：入口脱敏、租户隔离检索、可删除（含记忆向量）。</li>
+          <li>审计用追加写哈希链，让「谁在什么时间对 Agent 做了什么」不可抵赖。</li>
         </ul>
 
         <div class="chapter__nav">
