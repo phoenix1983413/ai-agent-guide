@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>第 12 章 Agent 的自我进化 —— AI Agent 权威指南</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <meta name="description" content="Agent 自我进化机制：RLHF 在 Agent 中的应用、经验蒸馏、记忆库自动整理、演化边界。含带反馈闭环的自迭代框架（Python + TypeScript）。">
+</head>
+<body>
+  <nav class="sidebar">
+    <div class="sidebar__brand">
+      <h2>AI Agent<br>权威指南</h2>
+      <span class="sidebar__version">v0.2 · 前 10 章</span>
+    </div>
+    <ul class="sidebar__nav">
+      <li><a href="/" class="nav-item">序章</a></li>
+      <li class="nav-section">Part 0 · 决策者视角</li>
+      <li><a href="/chapters/part-0.html" class="nav-item">Part 0 为什么需要了解 Agent</a></li>
+      <li class="nav-section">第一部分 · 基础</li>
+      <li><a href="/chapters/chapter-01.html" class="nav-item">第 1 章 什么是 AI Agent</a></li>
+      <li><a href="/chapters/chapter-02.html" class="nav-item">第 2 章 Agent 架构通用模式</a></li>
+      <li><a href="/chapters/chapter-03.html" class="nav-item">第 3 章 记忆系统</a></li>
+      <li><a href="/chapters/chapter-04.html" class="nav-item">第 4 章 工具使用与函数调用</a></li>
+      <li><a href="/chapters/chapter-05.html" class="nav-item">第 5 章 规划与推理</a></li>
+      <li class="nav-section">第二部分 · 核心模块</li>
+      <li><a href="/chapters/chapter-06.html" class="nav-item">第 6 章 多智能体协作</a></li>
+      <li><a href="/chapters/chapter-07.html" class="nav-item">第 7 章 人机交互界面</a></li>
+      <li><a href="/chapters/chapter-08.html" class="nav-item">第 8 章 提示工程（Prompt Engineering）的工程化</a></li>
+      <li><a href="/chapters/chapter-09.html" class="nav-item">第 9 章 Agent 评测与红线</a></li>
+      <li><a href="/chapters/chapter-10.html" class="nav-item">第 10 章 可观测性与调试</a></li>
+      <li><a href="/chapters/chapter-11.html" class="nav-item">第 11 章 安全、合规与治理</a></li>
+      <li><a href="/chapters/chapter-12.html" class="nav-item nav-item--active">第 12 章 Agent 的自我进化</a></li>
+      <li class="nav-section">更多章节</li>
+      <li><span class="nav-item nav-item--disabled">第 13–21 章 · 连载中</span></li>
+    </ul>
+    <div class="sidebar__footer">
+      <a href="https://github.com/phoenix1983413/ai-agent-guide" target="_blank" rel="noopener">GitHub 仓库</a>
+    </div>
+  </nav>
+
+  <main class="content">
+    <article class="chapter">
+      <header class="chapter__header">
+        <span class="chapter__badge">第 12 章</span>
+        <h1 class="chapter__title">Agent 的自我进化</h1>
+        <p class="chapter__subtitle">RLHF / 经验蒸馏 / 记忆库整理 / 演化边界</p>
+      </header>
+
+      <section class="chapter__body">
+        <h2>12.1 从反馈中学习：RLHF 在 Agent 中的应用</h2>
+        <p>RLHF（人类反馈强化学习）在 Agent 中的落地比在 Chatbot 中更复杂，因为 Agent 的动作空间是工具调用序列，不是单一文本。两种适配思路：</p>
+        <ul>
+          <li><strong> outcome-based RLHF</strong>：只对最终结果打分（成功 / 失败），用奖励模型训练策略。</li>
+          <li><strong>process-based RLHF</strong>：对每一步（思考、工具调用）都打分，奖励高质量中间步骤。</li>
+        </ul>
+        <p>实践建议：初期用 outcome-based，实现简单；数据量足够后再切 process-based，效果更好但标注成本高。</p>
+
+        <h2>12.2 经验蒸馏：把多次执行压缩成可复用的策略</h2>
+        <p>Agent 运行时会积累大量 trace。经验蒸馏是从这些 trace 中提炼出可复用的策略：</p>
+<o:p></o:p>
+        <ol>
+          <li>收集成功 trace，按任务类型聚类。</li>
+          <li>提取高频工具调用序列作为「脚本」。</li>
+          <li>把脚本编码成 prompt 片段或 decision tree，下次遇到同类任务直接命中。</li>
+          <li>定期用新 trace 刷新策略，避免过时。</li>
+        </ol>
+
+        <h2>12.3 记忆库的自动整理与知识蒸馏</h2>
+        <p>记忆库会越积越多，需要自动整理：</p>
+        <ul>
+          <li><strong>去重</strong>：相似度 &gt; 0.95 的记忆合并。</li>
+          <li><strong>降级</strong>：长期未被访问的记忆从向量库移到冷存储。</li>
+          <li><strong>蒸馏</strong>：把多条相关记忆总结成一条高密度摘要，释放空间。</li>
+        </ul>
+
+        <h2>12.4 演化边界：什么该让 Agent 自己改，什么必须人工评审</h2>
+        <table class="table">
+          <thead>
+            <tr><th>层级</th><th>Agent 可自主修改</th><th>必须人工评审</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>提示词</td><td>变量、示例、温度</td><td>system prompt 核心规则、安全约束</td></tr>
+            <tr><td>工具</td><td>参数默认值、重试策略</td><td>新增工具、权限变更、删除接口</td></tr>
+            <tr><td>记忆</td><td>自动摘要、冷热分层</td><td>用户数据删除、跨租户合并</td></tr>
+            <tr><td>模型</td><td>路由策略、fallback 顺序</td><td>底层模型替换、安全对齐开关</td></tr>
+          </tbody>
+        </table>
+
+        <h2>本章产出：带反馈闭环的 Agent 自迭代框架（双语言）</h2>
+
+        <h3>Python 版本</h3>
+        <pre><code class="language-python">"""
+Agent 自迭代框架 —— Python
+核心：收集反馈 -> 评分 -> 蒸馏策略 -> 更新 prompt
+"""
+from __future__ import annotations
+import json, hashlib
+from dataclasses import dataclass, field
+from typing import Any
+from collections import defaultdict
+
+@dataclass
+class Trace:
+    id: str
+    task_type: str
+    input: str
+    steps: list[dict]
+    outcome: str  # success | failure
+    feedback_score: float = 0.0  # 0~1
+
+class ExperienceDistiller:
+    def __init__(self):
+        self.traces: list[Trace] = []
+        self.strategies: dict[str, list[dict]] = defaultdict(list)
+
+    def add_trace(self, trace: Trace):
+        self.traces.append(trace)
+
+    def distill(self) -> dict[str, list[dict]]:
+        """按任务类型聚类，提炼高频步骤序列作为策略。"""
+        groups: dict[str, list[Trace]] = defaultdict(list)
+        for t in self.traces:
+            if t.outcome == "success":
+                groups[t.task_type].append(t)
+
+        for task_type, traces in groups.items():
+            step_counter: dict[tuple, int] = defaultdict(int)
+            for trace in traces:
+                seq = tuple(s.get("tool") or s.get("action") for s in trace.steps)
+                step_counter[seq] += 1
+            # 取 Top-3 高频序列
+            top = sorted(step_counter.items(), key=lambda x: x[1], reverse=True)[:3]
+            self.strategies[task_type] = [
+                {"sequence": list(seq), "count": count, "confidence": count / len(traces)}
+                for seq, count in top
+            ]
+        return dict(self.strategies)
+
+    def update_prompt(self, task_type: str) -> str:
+        """根据蒸馏出的策略生成 prompt 片段。"""
+        strats = self.strategies.get(task_type, [])
+        if not strats:
+            return ""
+        lines = [f"任务类型: {task_type} 的推荐执行步骤："]
+        for i, s in enumerate(strats, 1):
+            lines.append(f"{i}. " + " -> ".join(s["sequence"]) + f" (置信度 {s['confidence']:.0%})")
+        return "\n".join(lines)
+
+# 使用示例
+if __name__ == "__main__":
+    distiller = ExperienceDistiller()
+    distiller.add_trace(Trace(
+        id="t1", task_type="search_and_summarize",
+        input="AI Agent 最新进展",
+        steps=[{"tool": "search", "query": "AI Agent 2024"}, {"tool": "summarize"}],
+        outcome="success", feedback_score=0.9,
+    ))
+    distiller.add_trace(Trace(
+        id="t2", task_type="search_and_summarize",
+        input="AI Agent 最新进展",
+        steps=[{"tool": "search", "query": "AI Agent 2024"}, {"tool": "summarize"}],
+        outcome="success", feedback_score=0.85,
+    ))
+    print(distiller.update_prompt("search_and_summarize"))</code></pre>
+
+        <h3>TypeScript 版本</h3>
+        <pre><code class="language-typescript">/**
+Agent 自迭代框架 —— TypeScript
+*/
+interface Trace {
+  id: string;
+  taskType: string;
+  input: string;
+  steps: Array<Record<string, any>>;
+  outcome: "success" | "failure";
+  feedbackScore: number;
+}
+
+class ExperienceDistiller {
+  private traces: Trace[] = [];
+  private strategies = new Map<string, Array<{ sequence: string[]; count: number; confidence: number }>>();
+
+  addTrace(trace: Trace) { this.traces.push(trace); }
+
+  distill(): Record<string, Array<{ sequence: string[]; count: number; confidence: number }>> {
+    const groups = new Map<string, Trace[]>();
+    for (const t of this.traces) {
+      if (t.outcome !== "success") continue;
+      const arr = groups.get(t.taskType) ?? [];
+      arr.push(t);
+      groups.set(t.taskType, arr);
+    }
+
+    for (const [taskType, traces] of groups) {
+      const counter = new Map<string, number>();
+      for (const trace of traces) {
+        const seq = trace.steps.map(s => s.tool ?? s.action ?? "").join("->");
+        counter.set(seq, (counter.get(seq) ?? 0) + 1);
+      }
+      const top = Array.from(counter.entries())
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3)
+        .map(([sequence, count]) => ({
+          sequence: sequence.split("->"),
+          count,
+          confidence: count / traces.length,
+        }));
+      this.strategies.set(taskType, top);
+    }
+    return Object.fromEntries(this.strategies);
+  }
+
+  updatePrompt(taskType: string): string {
+    const strats = this.strategies.get(taskType);
+    if (!strats?.length) return "";
+    const lines = [`任务类型: ${taskType} 的推荐执行步骤：`];
+    strats.forEach((s, i) => {
+      lines.push(`${i + 1}. ${s.sequence.join(" -> ")} (置信度 ${(s.confidence * 100).toFixed(0)}%)`);
+    });
+    return lines.join("\n");
+  }
+}
+
+// 使用示例
+const distiller = new ExperienceDistiller();
+distiller.addTrace({ id: "t1", taskType: "search_and_summarize", input: "AI Agent 最新进展",
+  steps: [{ tool: "search", query: "AI Agent 2024" }, { tool: "summarize" }], outcome: "success", feedbackScore: 0.9 });
+distiller.addTrace({ id: "t2", taskType: "search_and_summarize", input: "AI Agent 最新进展",
+  steps: [{ tool: "search", query: "AI Agent 2024" }, { tool: "summarize" }], outcome: "success", feedbackScore: 0.85 });
+console.log(distiller.updatePrompt("search_and_summarize"));</code></pre>
+
+        <h2>本章产出</h2>
+        <ul>
+          <li>Agent 自我进化的四层边界模型（提示词 / 工具 / 记忆 / 模型）。</li>
+          <li>经验蒸馏器：从成功 trace 中提取高频步骤序列。</li>
+          <li>自迭代框架：收集反馈 → 聚类 → 蒸馏 → 更新 prompt。</li>
+        </ul>
+
+        <div class="chapter__nav">
+          <a href="/chapters/chapter-11.html" class="chapter__nav-link">← 第 11 章</a>
+          <a href="/chapters/chapter-13.html" class="chapter__nav-link">第 13 章 Agent 与外部系统集成 →</a>
+        </div>
+      </section>
+    </article>
+  </main>
+
+  <script src="/assets/js/main.js" defer></script>
+</body>
+</html>

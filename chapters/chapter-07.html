@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>第 7 章 人机交互界面 —— AI Agent 权威指南</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <meta name="description" content="Agent 的人机交互设计：I/O 契约、流式输出、Chat UI、命令面板、渐进式披露、信任设计与撤销机制。含 WebSocket 聊天界面原型（Python + TypeScript）。">
+</head>
+<body>
+  <nav class="sidebar">
+    <div class="sidebar__brand">
+      <h2>AI Agent<br>权威指南</h2>
+      <span class="sidebar__version">v0.2 · 前 10 章</span>
+    </div>
+    <ul class="sidebar__nav">
+      <li><a href="/" class="nav-item">序章</a></li>
+      <li class="nav-section">Part 0 · 决策者视角</li>
+      <li><a href="/chapters/part-0.html" class="nav-item">Part 0 为什么需要了解 Agent</a></li>
+      <li class="nav-section">第一部分 · 基础</li>
+      <li><a href="/chapters/chapter-01.html" class="nav-item">第 1 章 什么是 AI Agent</a></li>
+      <li><a href="/chapters/chapter-02.html" class="nav-item">第 2 章 Agent 架构通用模式</a></li>
+      <li><a href="/chapters/chapter-03.html" class="nav-item">第 3 章 记忆系统</a></li>
+      <li><a href="/chapters/chapter-04.html" class="nav-item">第 4 章 工具使用与函数调用</a></li>
+      <li><a href="/chapters/chapter-05.html" class="nav-item">第 5 章 规划与推理</a></li>
+      <li class="nav-section">第二部分 · 核心模块</li>
+      <li><a href="/chapters/chapter-06.html" class="nav-item">第 6 章 多智能体协作</a></li>
+      <li><a href="/chapters/chapter-07.html" class="nav-item nav-item--active">第 7 章 人机交互界面</a></li>
+      <li class="nav-section">更多章节</li>
+      <li><span class="nav-item nav-item--disabled">第 8–21 章 · 连载中</span></li>
+    </ul>
+    <div class="sidebar__footer">
+      <a href="https://github.com/phoenix1983413/ai-agent-guide" target="_blank" rel="noopener">GitHub 仓库</a>
+    </div>
+  </nav>
+
+  <main class="content">
+    <article class="chapter">
+      <header class="chapter__header">
+        <span class="chapter__badge">第 7 章</span>
+        <h1 class="chapter__title">人机交互界面</h1>
+        <p class="chapter__subtitle">I/O 契约 / Chat UI / 命令面板 / 渐进式披露 / 信任设计</p>
+      </header>
+
+      <section class="chapter__body">
+        <h2>7.1 Agent 的 I/O 契约</h2>
+        <p>Agent 与用户的交互不是简单的「一问一答」，而是持续的双向对话。设计 I/O 契约时要考虑三种形态：</p>
+        <ul>
+          <li><strong>流式输出（Streaming）</strong>：Agent 的思考过程和最终答案同时推送，用户看到「正在思考…」→「逐步写出答案」。降低感知延迟。</li>
+          <li><strong>结构化事件（Structured Events）</strong>：不只是文本，还包括「工具调用中」「已搜索 3 条结果」「正在写文件」这类状态事件。前端据此渲染进度条、步骤条。</li>
+          <li><strong>异步通知（Async Notification）</strong>：Agent 在后台跑长任务，完成后主动推送（WebSocket / Web Push / 邮件）。用户无需盯着屏幕等。</li>
+        </ul>
+        <p>好的 I/O 契约让 Agent 像一个「有反馈的同事」：你知道它在做什么、做到哪了、卡在哪。</p>
+
+        <h2>7.2 前端集成模式</h2>
+        <table class="table">
+          <thead>
+            <tr><th>模式</th><th>形态</th><th>优点</th><th>缺点</th><th>适用场景</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Chat UI</td><td>对话气泡、输入框</td><td>自然、熟悉</td><td>不适合结构化操作</td><td>问答、客服、助理</td></tr>
+            <tr><td>命令面板</td><td>Cmd+K 输入框、下拉建议</td><td>高效、键盘友好</td><td>学习成本</td><td>开发者工具、效率工具</td></tr>
+            <tr><td>侧边栏 Agent</td><td>常驻侧边栏、内联操作</td><td>不打断主流程</td><td>空间有限</td><td>IDE、文档编辑器、CRM</td></tr>
+            <tr><td>全屏工作台</td><td>独立页面、多面板</td><td>功能完整</td><td>跳转成本高</td><td>复杂任务、多步骤流程</td></tr>
+          </tbody>
+        </table>
+
+        <h2>7.3 渐进式披露</h2>
+        <p>Agent 的执行过程可能很长，一次性展示所有中间步骤会让用户 overwhelm。渐进式披露的原则：</p>
+        <ol>
+          <li><strong>默认只展示最终答案和关键步骤</strong>：如「搜索了 3 个来源 → 综合得出…」。</li>
+          <li><strong>细节默认折叠</strong>：用户点「展开」才看完整的工具调用参数和原始返回。</li>
+          <li><strong>按用户角色调整 granularity</strong>：普通用户看结论，开发者看日志，管理员看审计。</li>
+          <li><strong>异常时自动展开</strong>：工具报错、权限不足时，自动把错误详情和修复建议展示出来。</li>
+        </ol>
+
+        <h2>7.4 信任设计</h2>
+        <p>用户信任 Agent 的前提是「知道它在干嘛」和「能随时叫停」。三个关键机制：</p>
+        <ul>
+          <li><strong>来源标注</strong>：Agent 引用了外部信息时，显示来源链接或文件名。如「根据 [文件 A] 第 3 段…」。</li>
+          <li><strong>置信度显示</strong>：对不确定的答案标注置信度（高/中/低），或直接给出概率值。</li>
+          <li><strong>撤销机制</strong>：Agent 执行了不可逆操作（删除、发送、支付）后，提供「撤销」按钮，且窗口期不少于 5 秒。</li>
+        </ul>
+
+        <h2>本章产出：WebSocket Agent 聊天界面原型（双语言）</h2>
+        <p>下面是一个最小化的 WebSocket 聊天服务端 + 客户端，演示流式输出和结构化事件。</p>
+
+        <h3>Python 服务端（FastAPI）</h3>
+        <pre><code class="language-python">"""
+WebSocket Agent 聊天原型 —— Python
+依赖：fastapi, uvicorn, websockets
+"""
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi.responses import HTMLResponse
+import json, asyncio, uuid
+
+app = FastAPI()
+
+# ---- 连接管理 ----
+class ConnectionManager:
+    def __init__(self):
+        self.active: dict[str, WebSocket] = {}
+
+    async def connect(self, ws: WebSocket):
+        cid = uuid.uuid4().hex[:8]
+        await ws.accept()
+        self.active[cid] = ws
+        return cid
+
+    def disconnect(self, cid: str):
+        self.active.pop(cid, None)
+
+    async def send(self, cid: str, event: dict):
+        ws = self.active.get(cid)
+        if ws:
+            await ws.send_json(event)
+
+manager = ConnectionManager()
+
+# ---- 模拟 Agent 流式回复 ----
+async def agent_stream(cid: str, user_msg: str):
+    steps = [
+        ("thinking", "正在理解问题…"),
+        ("tool_call", "search", {"q": user_msg}),
+        ("tool_result", "找到 3 条相关结果"),
+        ("thinking", "正在综合答案…"),
+        ("answer", f"关于「{user_msg}」的答案：这是一个模拟回复。"),
+    ]
+    for step in steps:
+        await asyncio.sleep(0.6)  # 模拟耗时
+        if step[0] == "thinking":
+            await manager.send(cid, {"type": "thinking", "text": step[1]})
+        elif step[0] == "tool_call":
+            await manager.send(cid, {"type": "tool_call", "tool": step[1], "args": step[2]})
+        elif step[0] == "tool_result":
+            await manager.send(cid, {"type": "tool_result", "text": step[1]})
+        elif step[0] == "answer":
+            await manager.send(cid, {"type": "answer", "text": step[1]})
+
+@app.websocket("/ws/chat")
+async def ws_chat(ws: WebSocket):
+    cid = await manager.connect(ws)
+    try:
+        while True:
+            data = await ws.receive_json()
+            user_msg = data.get("message", "")
+            asyncio.create_task(agent_stream(cid, user_msg))
+    except WebSocketDisconnect:
+        manager.disconnect(cid)
+
+@app.get("/")
+async def get_client():
+    return HTMLResponse("""<!DOCTYPE html>
+<html>
+<head><title>Agent Chat</title></head>
+<body>
+  <div id="messages"></div>
+  <input id="input" placeholder="输入消息…" />
+  <script>
+    const ws = new WebSocket(`ws://${location.host}/ws/chat`);
+    ws.onmessage = (e) => {
+      const d = JSON.parse(e.data);
+      const div = document.createElement("div");
+      div.textContent = `[${d.type}] ${d.text || d.tool || ""}`;
+      document.getElementById("messages").appendChild(div);
+    };
+    document.getElementById("input").onkeydown = (e) => {
+      if (e.key === "Enter") ws.send(JSON.stringify({message: e.target.value}));
+    };
+  </script>
+</body>
+</html>""")
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)</code></pre>
+
+        <h3>TypeScript 服务端（Node.js + ws）</h3>
+        <pre><code class="language-typescript">/**
+WebSocket Agent 聊天原型 —— TypeScript
+依赖：ws, @types/ws, typescript
+*/
+import { WebSocketServer, WebSocket } from "ws";
+
+const wss = new WebSocketServer({ port: 8080 });
+const clients = new Set<WebSocket>();
+
+wss.on("connection", (ws) => {
+  clients.add(ws);
+  ws.on("message", async (raw) => {
+    const { message } = JSON.parse(raw.toString());
+    const steps: Array<{ type: string; [k: string]: any }> = [
+      { type: "thinking", text: "正在理解问题…" },
+      { type: "tool_call", tool: "search", args: { q: message } },
+      { type: "tool_result", text: "找到 3 条相关结果" },
+      { type: "thinking", text: "正在综合答案…" },
+      { type: "answer", text: `关于「${message}」的答案：这是一个模拟回复。` },
+    ];
+    for (const step of steps) {
+      await new Promise(r => setTimeout(r, 600));
+      ws.send(JSON.stringify(step));
+    }
+  });
+  ws.on("close", () => clients.delete(ws));
+});
+
+console.log("Agent Chat WS 运行在 ws://localhost:8080");</code></pre>
+
+        <h2>本章产出</h2>
+        <ul>
+          <li>Agent I/O 契约的设计 checklist（流式 / 结构化事件 / 异步通知）。</li>
+          <li>四种前端集成模式的选择矩阵。</li>
+          <li>一个可运行的 WebSocket 聊天原型，演示流式输出和工具调用事件的实时推送。</li>
+        </ul>
+
+        <div class="chapter__nav">
+          <a href="/chapters/chapter-06.html" class="chapter__nav-link">← 第 6 章</a>
+          <a href="/chapters/chapter-08.html" class="chapter__nav-link">第 8 章 提示工程（Prompt Engineering）的工程化 →</a>
+        </div>
+      </section>
+    </article>
+  </main>
+
+  <script src="/assets/js/main.js" defer></script>
+</body>
+</html>

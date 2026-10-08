@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>第 20 章 Agent 伦理与对齐 —— AI Agent 权威指南</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <meta name="description" content="Agent 伦理与对齐：价值对齐、透明性、责任归属、监管趋势（EU AI Act、中国算法推荐管理规定）。">
+</head>
+<body>
+  <nav class="sidebar">
+    <div class="sidebar__brand">
+      <h2>AI Agent<br>权威指南</h2>
+      <span class="sidebar__version">v0.2 · 前 10 章</span>
+    </div>
+    <ul class="sidebar__nav">
+      <li><a href="/" class="nav-item">序章</a></li>
+      <li class="nav-section">Part 0 · 决策者视角</li>
+      <li><a href="/chapters/part-0.html" class="nav-item">Part 0 为什么需要了解 Agent</a></li>
+      <li class="nav-section">第一部分 · 基础</li>
+      <li><a href="/chapters/chapter-01.html" class="nav-item">第 1 章 什么是 AI Agent</a></li>
+      <li><a href="/chapters/chapter-02.html" class="nav-item">第 2 章 Agent 架构通用模式</a></li>
+      <li><a href="/chapters/chapter-03.html" class="nav-item">第 3 章 记忆系统</a></li>
+      <li><a href="/chapters/chapter-04.html" class="nav-item">第 4 章 工具使用与函数调用</a></li>
+      <li><a href="/chapters/chapter-05.html" class="nav-item">第 5 章 规划与推理</a></li>
+      <li class="nav-section">第二部分 · 核心模块</li>
+      <li><a href="/chapters/chapter-06.html" class="nav-item">第 6 章 多智能体协作</a></li>
+      <li><a href="/chapters/chapter-07.html" class="nav-item">第 7 章 人机交互界面</a></li>
+      <li><a href="/chapters/chapter-08.html" class="nav-item">第 8 章 提示工程（Prompt Engineering）的工程化</a></li>
+      <li><a href="/chapters/chapter-09.html" class="nav-item">第 9 章 Agent 评测与红线</a></li>
+      <li><a href="/chapters/chapter-10.html" class="nav-item">第 10 章 可观测性与调试</a></li>
+      <li><a href="/chapters/chapter-11.html" class="nav-item">第 11 章 安全、合规与治理</a></li>
+      <li><a href="/chapters/chapter-12.html" class="nav-item">第 12 章 Agent 的自我进化</a></li>
+      <li><a href="/chapters/chapter-13.html" class="nav-item">第 13 章 Agent 与外部系统集成</a></li>
+      <li><a href="/chapters/chapter-14.html" class="nav-item">第 14 章 性能优化与成本控制</a></li>
+      <li><a href="/chapters/chapter-15.html" class="nav-item">第 15 章 场景一：研发助手（代码级 Agent）</a></li>
+      <li><a href="/chapters/chapter-16.html" class="nav-item">第 16 章 场景二：数据分析 Agent</a></li>
+      <li><a href="/chapters/chapter-17.html" class="nav-item">第 17 章 场景三：客户服务 Agent</a></li>
+      <li><a href="/chapters/chapter-18.html" class="nav-item">第 18 章 场景四：个人助理 Agent</a></li>
+      <li><a href="/chapters/chapter-19.html" class="nav-item">第 19 章 Agent 之间的协议与标准</a></li>
+      <li><a href="/chapters/chapter-20.html" class="nav-item nav-item--active">第 20 章 Agent 伦理与对齐</a></li>
+      <li class="nav-section">更多章节</li>
+      <li><span class="nav-item nav-item--disabled">第 21 章 · 连载中</span></li>
+    </ul>
+    <div class="sidebar__footer">
+      <a href="https://github.com/phoenix1983413/ai-agent-guide" target="_blank" rel="noopener">GitHub 仓库</a>
+    </div>
+  </nav>
+
+  <main class="content">
+    <article class="chapter">
+      <header class="chapter__header">
+        <span class="chapter__badge">第 20 章</span>
+        <h1 class="chapter__title">Agent 伦理与对齐</h1>
+        <p class="chapter__subtitle">价值对齐 / 透明性 / 责任归属 / 监管趋势</p>
+      </header>
+
+      <section class="chapter__body">
+        <h2>20.1 价值对齐：什么是「正确的事」</h2>
+        <p>Agent 的决策必须与人类价值观对齐。挑战在于：价值观是多元的、语境依赖的、会随时间演化。工程实践中，对齐通过三层实现：</p>
+        <ul>
+          <li><strong>规则层</strong>：硬编码红线（如「不生成暴力内容」）。</li>
+          <li><strong>偏好层</strong>：用户个人偏好（如「我喜欢简洁的回答」）。</li>
+          <li><strong>文化层</strong>：地域、行业、组织的文化规范（如金融行业对合规的重视程度）。</li>
+        </ul>
+
+        <h2>20.2 透明性：用户是否有知情权</h2>
+        <p>用户必须知道自己在和 AI 交互，以及 AI 的能力边界。透明性要求：</p>
+        <ul>
+          <li><strong>身份披露</strong>：明确告知用户对方是 AI，不是人类。</li>
+          <li><strong>能力边界</strong>：说明 Agent 能做什么、不能做什么、可能出错的地方。</li>
+          <li><strong>数据使用</strong>：告知用户哪些数据被记录、用于什么目的、保留多久。</li>
+        </ul>
+
+        <h2>20.3 责任归属：Agent 做错了，谁负责</h2>
+        <p>法律界和产业界仍在探索，但工程上可以提前布局：</p>
+        <ul>
+          <li><strong>可审计</strong>：所有决策链路留痕，可回溯到具体 prompt、模型版本、工具调用。</li>
+          <li><strong>可干预</strong>：人工可以随时介入、修正、撤销 Agent 的行为。</li>
+          <li><strong>可隔离</strong>：单个 Agent 故障不影响主系统，责任范围可界定。</li>
+        </ul>
+
+        <h2>20.4 监管趋势：EU AI Act、中国算法推荐管理规定</h2>
+        <p>全球 AI 监管正在收紧，Agent 作为自主系统是重点监管对象：</p>
+        <ul>
+          <li><strong>EU AI Act</strong>：按风险分级，高风险 AI 系统（包括自主 Agent）需通过合规评估、建立风险管理体系、保持日志。</li>
+          <li><strong>中国算法推荐管理规定</strong>：算法备案、用户知情权、关闭个性化推荐选项、不得诱导用户沉迷。</li>
+          <li><strong>行业自律</strong>：ISO / IEEE 正在制定 Agent 安全标准，企业应提前跟踪。</li>
+        </ul>
+
+        <h2>本章产出</h2>
+        <ul>
+          <li>Agent 对齐的三层模型（规则 / 偏好 / 文化）。</li>
+          <li>透明性 checklist：身份披露、能力边界、数据使用告知。</li>
+          <li>责任归属的工程实践（可审计 / 可干预 / 可隔离）。</li>
+          <li>EU AI Act 和中国算法推荐管理规定的合规要点速查。</li>
+        </ul>
+
+        <div class="chapter__nav">
+          <a href="/chapters/chapter-19.html" class="chapter__nav-link">← 第 19 章</a>
+          <a href="/chapters/chapter-21.html" class="chapter__nav-link">第 21 章 构建你自己的第一个 Agent 产品 →</a>
+        </div>
+      </section>
+    </article>
+  </main>
+
+  <script src="/assets/js/main.js" defer></script>
+</body>
+</html>

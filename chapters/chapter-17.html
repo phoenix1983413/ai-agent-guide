@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>第 17 章 场景三：客户服务 Agent —— AI Agent 权威指南</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <meta name="description" content="客户服务 Agent 实战：多轮对话、工单系统、知识库检索。含 CRM 对接、邮件发送、话术审核与人工接管（Python + TypeScript）。">
+</head>
+<body>
+  <nav class="sidebar">
+    <div class="sidebar__brand">
+      <h2>AI Agent<br>权威指南</h2>
+      <span class="sidebar__version">v0.2 · 前 10 章</span>
+    </div>
+    <ul class="sidebar__nav">
+      <li><a href="/" class="nav-item">序章</a></li>
+      <li class="nav-section">Part 0 · 决策者视角</li>
+      <li><a href="/chapters/part-0.html" class="nav-item">Part 0 为什么需要了解 Agent</a></li>
+      <li class="nav-section">第一部分 · 基础</li>
+      <li><a href="/chapters/chapter-01.html" class="nav-item">第 1 章 什么是 AI Agent</a></li>
+      <li><a href="/chapters/chapter-02.html" class="nav-item">第 2 章 Agent 架构通用模式</a></li>
+      <li><a href="/chapters/chapter-03.html" class="nav-item">第 3 章 记忆系统</a></li>
+      <li><a href="/chapters/chapter-04.html" class="nav-item">第 4 章 工具使用与函数调用</a></li>
+      <li><a href="/chapters/chapter-05.html" class="nav-item">第 5 章 规划与推理</a></li>
+      <li class="nav-section">第二部分 · 核心模块</li>
+      <li><a href="/chapters/chapter-06.html" class="nav-item">第 6 章 多智能体协作</a></li>
+      <li><a href="/chapters/chapter-07.html" class="nav-item">第 7 章 人机交互界面</a></li>
+      <li><a href="/chapters/chapter-08.html" class="nav-item">第 8 章 提示工程（Prompt Engineering）的工程化</a></li>
+      <li><a href="/chapters/chapter-09.html" class="nav-item">第 9 章 Agent 评测与红线</a></li>
+      <li><a href="/chapters/chapter-10.html" class="nav-item">第 10 章 可观测性与调试</a></li>
+      <li><a href="/chapters/chapter-11.html" class="nav-item">第 11 章 安全、合规与治理</a></li>
+      <li><a href="/chapters/chapter-12.html" class="nav-item">第 12 章 Agent 的自我进化</a></li>
+      <li><a href="/chapters/chapter-13.html" class="nav-item">第 13 章 Agent 与外部系统集成</a></li>
+      <li><a href="/chapters/chapter-14.html" class="nav-item">第 14 章 性能优化与成本控制</a></li>
+      <li><a href="/chapters/chapter-15.html" class="nav-item">第 15 章 场景一：研发助手（代码级 Agent）</a></li>
+      <li><a href="/chapters/chapter-16.html" class="nav-item">第 16 章 场景二：数据分析 Agent</a></li>
+      <li><a href="/chapters/chapter-17.html" class="nav-item nav-item--active">第 17 章 场景三：客户服务 Agent</a></li>
+      <li class="nav-section">更多章节</li>
+      <li><span class="nav-item nav-item--disabled">第 18–21 章 · 连载中</span></li>
+    </ul>
+    <div class="sidebar__footer">
+      <a href="https://github.com/phoenix1983413/ai-agent-guide" target="_blank" rel="noopener">GitHub 仓库</a>
+    </div>
+  </nav>
+
+  <main class="content">
+    <article class="chapter">
+      <header class="chapter__header">
+        <span class="chapter__badge">第 17 章</span>
+        <h1 class="chapter__title">场景三：客户服务 Agent</h1>
+        <p class="chapter__subtitle">多轮对话 / 工单系统 / 知识库检索 / 合规话术与人工接管</p>
+      </header>
+
+      <section class="chapter__body">
+        <h2>17.1 需求：多轮对话、工单系统、知识库检索</h2>
+        <p>客户服务 Agent 是商业化最成熟的场景。用户诉求通常分三层：</p>
+        <ul>
+          <li><strong>即时问答</strong>：查物流、问政策、退款条件。知识库命中即可回复。</li>
+          <li><strong>多轮澄清</strong>：用户描述模糊，Agent 需追问「请问订单号是多少？」「是商品问题还是物流问题？」。</li>
+          <li><strong>工单流转</strong>：无法自动解决的问题，自动创建工单、分配客服、同步进度。</li>
+        </ul>
+
+        <h2>17.2 工具：CRM 查询、工单创建、邮件发送</h2>
+        <p>客服 Agent 的核心工具：</p>
+        <ul>
+          <li><strong>CRM 查询</strong>：拉取用户历史订单、投诉记录、会员等级。</li>
+          <li><strong>工单系统</strong>：创建 / 查询 / 关闭工单，支持附件和内部备注。</li>
+          <li><strong>邮件 / 短信</strong>：发送确认函、补偿方案、调查问卷。</li>
+          <li><strong>知识库检索</strong>：向量搜索 + 关键词搜索混合，召回政策文档和 FAQ。</li>
+        </ul>
+
+        <h2>17.3 记忆：客户历史、偏好、投诉记录</h2>
+        <p>客服 Agent 的记忆让服务「有连续性」：</p>
+        <ul>
+          <li><strong>客户画像</strong>：历史投诉次数、偏好的沟通渠道（电话 / 在线 / 邮件）、是否 VIP。</li>
+          <li><strong>对话上下文</strong>：多轮对话中记住用户之前说过什么，避免重复询问。</li>
+          <li><strong>情绪记忆</strong>：识别用户情绪（愤怒、焦虑、满意），调整回复语气和升级策略。</li>
+        </ul>
+
+        <h2>17.4 合规：话术审核、人工接管触发条件</h2>
+        <p>客服直接面对用户，合规风险高：</p>
+        <ul>
+          <li><strong>话术审核</strong>：Agent 回复在发送前过规则 + 模型双重审核，禁止承诺赔偿额度、禁止泄露其他客户信息。</li>
+          <li><strong>人工接管</strong>：用户说「人工客服」、情绪识别为愤怒、话题涉及法律纠纷时，立即转人工。</li>
+          <li><strong>审计留痕</strong>：所有对话记录、工单操作、转人工原因必须可查。</li>
+        </ul>
+
+        <h2>本章产出：客户服务 Agent 的最小实现（双语言）</h2>
+
+        <h3>Python 版本</h3>
+        <pre><code class="language-python">"""
+客户服务 Agent 最小实现 —— Python
+"""
+from __future__ import annotations
+from dataclasses import dataclass
+from typing import Any
+
+@dataclass
+class CustomerContext:
+    user_id: str
+    name: str
+    vip: bool = False
+    complaint_count: int = 0
+    emotion: str = "neutral"
+
+class CustomerServiceAgent:
+    def __init__(self):
+        self.kb = {"退款": "7 天无理由，原路退回。", "物流": "默认 3–5 个工作日送达。"}
+        self.escalation_keywords = ["人工", "投诉", "律师", "起诉"]
+
+    def retrieve(self, question: str) -> str:
+        for k, v in self.kb.items():
+            if k in question: return v
+        return "请稍等，我帮您查询一下。"
+
+    def detect_emotion(self, text: str) -> str:
+        if any(w in text for w in ["生气", "愤怒", "骗子", "垃圾"]): return "angry"
+        if any(w in text for w in ["谢谢", "好的", "明白"]): return "happy"
+        return "neutral"
+
+    def should_escalate(self, user_input: str, ctx: CustomerContext) -> bool:
+        if any(k in user_input for k in self.escalation_keywords): return True
+        if ctx.emotion == "angry" and ctx.complaint_count >= 2: return True
+        return False
+
+    def reply(self, user_input: str, ctx: CustomerContext) -> dict:
+        ctx.emotion = self.detect_emotion(user_input)
+        if self.should_escalate(user_input, ctx):
+            return {"action": "escalate", "text": "正在为您转接人工客服，请稍候…"}
+        answer = self.retrieve(user_input)
+        return {"action": "reply", "text": answer, "emotion": ctx.emotion}
+
+# 使用示例
+if __name__ == "__main__":
+    agent = CustomerServiceAgent()
+    ctx = CustomerContext(user_id="u1", name="张三", complaint_count=1)
+    print(agent.reply("我要人工客服", ctx))
+    print(agent.reply("怎么退款？", ctx))</code></pre>
+
+        <h3>TypeScript 版本</h3>
+        <pre><code class="language-typescript">/**
+客户服务 Agent 最小实现 —— TypeScript
+*/
+interface CustomerContext { userId: string; name: string; vip: boolean; complaintCount: number; emotion: string; }
+
+class CustomerServiceAgent {
+  private kb: Record<string, string> = { "退款": "7 天无理由，原路退回。", "物流": "默认 3–5 个工作日送达。" };
+  private escalationKeywords = ["人工", "投诉", "律师", "起诉"];
+
+  private retrieve(question: string): string {
+    for (const [k, v] of Object.entries(this.kb)) { if (question.includes(k)) return v; }
+    return "请稍等，我帮您查询一下。";
+  }
+  private detectEmotion(text: string): string {
+    if (["生气", "愤怒", "骗子", "垃圾"].some(w => text.includes(w))) return "angry";
+    if (["谢谢", "好的", "明白"].some(w => text.includes(w))) return "happy";
+    return "neutral";
+  }
+  private shouldEscalate(userInput: string, ctx: CustomerContext): boolean {
+    if (this.escalationKeywords.some(k => userInput.includes(k))) return true;
+    if (ctx.emotion === "angry" && ctx.complaintCount >= 2) return true;
+    return false;
+  }
+  reply(userInput: string, ctx: CustomerContext): Record<string, any> {
+    ctx.emotion = this.detectEmotion(userInput);
+    if (this.shouldEscalate(userInput, ctx)) return { action: "escalate", text: "正在为您转接人工客服，请稍候…" };
+    return { action: "reply", text: this.retrieve(userInput), emotion: ctx.emotion };
+  }
+}
+
+// 使用示例
+const agent = new CustomerServiceAgent();
+const ctx: CustomerContext = { userId: "u1", name: "张三", vip: false, complaintCount: 1, emotion: "neutral" };
+console.log(agent.reply("我要人工客服", ctx));
+console.log(agent.reply("怎么退款？", ctx));</code></pre>
+
+        <h2>本章产出</h2>
+        <ul>
+          <li>客服 Agent 的三层需求模型（即时问答 / 多轮澄清 / 工单流转）。</li>
+          <li>情绪识别 + 人工接管触发条件。</li>
+          <li>最小可运行实现，可对接 CRM、工单系统、知识库。</li>
+        </ul>
+
+        <div class="chapter__nav">
+          <a href="/chapters/chapter-16.html" class="chapter__nav-link">← 第 16 章</a>
+          <a href="/chapters/chapter-18.html" class="chapter__nav-link">第 18 章 场景四：个人助理 Agent →</a>
+        </div>
+      </section>
+    </article>
+  </main>
+
+  <script src="/assets/js/main.js" defer></script>
+</body>
+</html>

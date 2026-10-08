@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>第 16 章 场景二：数据分析 Agent —— AI Agent 权威指南</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <meta name="description" content="数据分析 Agent 实战：自然语言提问 → 查数 → 可视化。含 SQL 生成、图表库、异常检测与只读边界（Python + TypeScript）。">
+</head>
+<body>
+  <nav class="sidebar">
+    <div class="sidebar__brand">
+      <h2>AI Agent<br>权威指南</h2>
+      <span class="sidebar__version">v0.2 · 前 10 章</span>
+    </div>
+    <ul class="sidebar__nav">
+      <li><a href="/" class="nav-item">序章</a></li>
+      <li class="nav-section">Part 0 · 决策者视角</li>
+      <li><a href="/chapters/part-0.html" class="nav-item">Part 0 为什么需要了解 Agent</a></li>
+      <li class="nav-section">第一部分 · 基础</li>
+      <li><a href="/chapters/chapter-01.html" class="nav-item">第 1 章 什么是 AI Agent</a></li>
+      <li><a href="/chapters/chapter-02.html" class="nav-item">第 2 章 Agent 架构通用模式</a></li>
+      <li><a href="/chapters/chapter-03.html" class="nav-item">第 3 章 记忆系统</a></li>
+      <li><a href="/chapters/chapter-04.html" class="nav-item">第 4 章 工具使用与函数调用</a></li>
+      <li><a href="/chapters/chapter-05.html" class="nav-item">第 5 章 规划与推理</a></li>
+      <li class="nav-section">第二部分 · 核心模块</li>
+      <li><a href="/chapters/chapter-06.html" class="nav-item">第 6 章 多智能体协作</a></li>
+      <li><a href="/chapters/chapter-07.html" class="nav-item">第 7 章 人机交互界面</a></li>
+      <li><a href="/chapters/chapter-08.html" class="nav-item">第 8 章 提示工程（Prompt Engineering）的工程化</a></li>
+      <li><a href="/chapters/chapter-09.html" class="nav-item">第 9 章 Agent 评测与红线</a></li>
+      <li><a href="/chapters/chapter-10.html" class="nav-item">第 10 章 可观测性与调试</a></li>
+      <li><a href="/chapters/chapter-11.html" class="nav-item">第 11 章 安全、合规与治理</a></li>
+      <li><a href="/chapters/chapter-12.html" class="nav-item">第 12 章 Agent 的自我进化</a></li>
+      <li><a href="/chapters/chapter-13.html" class="nav-item">第 13 章 Agent 与外部系统集成</a></li>
+      <li><a href="/chapters/chapter-14.html" class="nav-item">第 14 章 性能优化与成本控制</a></li>
+      <li><a href="/chapters/chapter-15.html" class="nav-item">第 15 章 场景一：研发助手（代码级 Agent）</a></li>
+      <li><a href="/chapters/chapter-16.html" class="nav-item nav-item--active">第 16 章 场景二：数据分析 Agent</a></li>
+      <li class="nav-section">更多章节</li>
+      <li><span class="nav-item nav-item--disabled">第 17–21 章 · 连载中</span></li>
+    </ul>
+    <div class="sidebar__footer">
+      <a href="https://github.com/phoenix1983413/ai-agent-guide" target="_blank" rel="noopener">GitHub 仓库</a>
+    </div>
+  </nav>
+
+  <main class="content">
+    <article class="chapter">
+      <header class="chapter__header">
+        <span class="chapter__badge">第 16 章</span>
+        <h1 class="chapter__title">场景二：数据分析 Agent</h1>
+        <p class="chapter__subtitle">自然语言提问 → 查数 → 可视化 / SQL 生成 / 异常检测 / 只读边界</p>
+      </header>
+
+      <section class="chapter__body">
+        <h2>16.1 需求：自然语言提问 → 查数 → 可视化</h2>
+        <p>数据分析 Agent 的目标是让非技术用户也能自助取数。典型交互：</p>
+        <ul>
+          <li>「上个月各区域的销售额和同比变化」</li>
+          <li>「找出 Q3 客单价最高的前 10 个客户」</li>
+          <li>「预测下个月的用户增长趋势」</li>
+        </ul>
+        <p>Agent 需要完成：NL → SQL → 查询执行 → 结果校验 → 可视化推荐。</p>
+
+        <h2>16.2 工具：SQL 生成、图表库、异常检测</h2>
+        <ul>
+          <li><strong>SQL 生成</strong>：把自然语言翻译成 SQL。关键是 schema 注入——把表结构、字段注释塞进 prompt，让模型知道有哪些字段可用。</li>
+          <li><strong>图表库</strong>：根据数据特征自动选图表类型（趋势用折线、占比用饼图、分布用直方图）。推荐 ECharts / Chart.js / Observable Plot。</li>
+          <li><strong>异常检测</strong>：对返回结果做统计检验（Z-score、IQR），发现异常值并在报告中高亮。</li>
+        </ul>
+
+        <h2>16.3 记忆：业务指标定义、用户常用查询</h2>
+        <ul>
+          <li><strong>指标词典</strong>：把业务指标（如 DAU、GMV、复购率）的计算口径持久化，避免 Agent 每次都重新理解。</li>
+          <li><strong>用户常用查询</strong>：记住高频查询，下次用户问类似问题时直接给出历史图表 + 增量说明。</li>
+        </ul>
+
+        <h2>16.4 边界：只读查询、结果校验</h2>
+        <p>数据分析 Agent 的安全红线：</p>
+        <ul>
+          <li><strong>只读查询</strong>：禁止 DDL / DML，只允许 SELECT。SQL 执行前过一遍语法校验和权限过滤。</li>
+          <li><strong>行数限制</strong>：强制 LIMIT，防止全表扫描拖垮数据库。</li>
+          <li><strong>结果校验</strong>：用规则或轻量模型检查返回数据是否合理（如负数销售额、未来日期）。</li>
+        </ul>
+
+        <h2>本章产出：数据分析 Agent 的最小实现（双语言）</h2>
+
+        <h3>Python 版本</h3>
+        <pre><code class="language-python">"""
+数据分析 Agent 最小实现 —— Python
+"""
+from __future__ import annotations
+import re
+from dataclasses import dataclass
+from typing import Any
+
+@dataclass
+class TableSchema:
+    table: str
+    columns: dict[str, str]  # column -> type + comment
+
+SCHEMA = {
+    "orders": TableSchema("orders", {
+        "order_id": "int 订单ID",
+        "user_id": "int 用户ID",
+        "amount": "decimal 金额",
+        "created_at": "date 创建时间",
+        "region": "varchar 区域",
+    }),
+    "users": TableSchema("users", {
+        "user_id": "int 用户ID",
+        "name": "varchar 姓名",
+        "register_date": "date 注册日期",
+    }),
+}
+
+class DataAnalyst:
+    def __init__(self):
+        self.schema = SCHEMA
+
+    def nl_to_sql(self, question: str) -> str:
+        """极简 NL2SQL：用 schema 做 prompt 上下文，实际生产接 LLM。"""
+        schema_desc = "\n".join(f"{t}.{c} ({d})" for t, s in self.schema.items() for c, d in s.columns.items())
+        prompt = f"Schema:\n{schema_desc}\nQuestion: {question}\nSQL:"
+        # 这里模拟 LLM 输出；生产环境替换为真实调用
+        if "销售额" in question or "amount" in question:
+            return "SELECT region, SUM(amount) as total FROM orders GROUP BY region"
+        if "用户" in question:
+            return "SELECT * FROM users LIMIT 10"
+        return "SELECT 1"
+
+    def validate_sql(self, sql: str) -> bool:
+        forbidden = ["DROP", "DELETE", "UPDATE", "INSERT", "ALTER", "TRUNCATE"]
+        upper = sql.upper()
+        return not any(f in upper for f in forbidden) and "LIMIT" in upper
+
+    def execute(self, sql: str) -> list[dict]:
+        # 实际接数据库；这里返回模拟数据
+        if "SUM" in sql:
+            return [{"region": "华东", "total": 125000}, {"region": "华南", "total": 98000}]
+        return [{"user_id": 1, "name": "张三"}]
+
+    def recommend_chart(self, sql: str, data: list[dict]) -> str:
+        if len(data) <= 5 and any("total" in d for d in data):
+            return "bar"  # 柱状图适合少量对比
+        if any("date" in d or "created_at" in d for d in data):
+            return "line"  # 时间序列用折线
+        return "table"
+
+    def query(self, question: str) -> dict:
+        sql = self.nl_to_sql(question)
+        if not self.validate_sql(sql):
+            return {"error": "SQL 不合法：只允许 SELECT + LIMIT"}
+        data = self.execute(sql)
+        chart = self.recommend_chart(sql, data)
+        return {"question": question, "sql": sql, "data": data, "chart": chart}
+
+# 使用示例
+if __name__ == "__main__":
+    agent = DataAnalyst()
+    print(agent.query("上个月各区域的销售额是多少？"))</code></pre>
+
+        <h3>TypeScript 版本</h3>
+        <pre><code class="language-typescript">/**
+数据分析 Agent 最小实现 —— TypeScript
+*/
+interface TableSchema { table: string; columns: Record<string, string>; }
+
+const SCHEMA: Record<string, TableSchema> = {
+  orders: { table: "orders", columns: { order_id: "int 订单ID", user_id: "int 用户ID", amount: "decimal 金额", created_at: "date 创建时间", region: "varchar 区域" } },
+  users: { table: "users", columns: { user_id: "int 用户ID", name: "varchar 姓名", register_date: "date 注册日期" } },
+};
+
+class DataAnalyst {
+  private schema = SCHEMA;
+  nlToSql(question: string): string {
+    const desc = Object.values(this.schema).flatMap(s => Object.entries(s.columns).map(([c, d]) => `${s.table}.${c} (${d})`)).join("\n");
+    if (/销售额|amount/.test(question)) return "SELECT region, SUM(amount) as total FROM orders GROUP BY region";
+    if (/用户|user/.test(question)) return "SELECT * FROM users LIMIT 10";
+    return "SELECT 1";
+  }
+  validateSql(sql: string): boolean {
+    const forbidden = ["DROP", "DELETE", "UPDATE", "INSERT", "ALTER", "TRUNCATE"];
+    const upper = sql.toUpperCase();
+    return !forbidden.some(f => upper.includes(f)) && sql.toUpperCase().includes("LIMIT");
+  }
+  execute(sql: string): Record<string, any>[] {
+    if (sql.includes("SUM")) return [{ region: "华东", total: 125000 }, { region: "华南", total: 98000 }];
+    return [{ user_id: 1, name: "张三" }];
+  }
+  recommendChart(sql: string, data: Record<string, any>[]): string {
+    if (data.length <= 5 && data.some(d => "total" in d)) return "bar";
+    if (data.some(d => "date" in d || "created_at" in d)) return "line";
+    return "table";
+  }
+  query(question: string): Record<string, any> {
+    const sql = this.nlToSql(question);
+    if (!this.validateSql(sql)) return { error: "SQL 不合法：只允许 SELECT + LIMIT" };
+    const data = this.execute(sql);
+    return { question, sql, data, chart: this.recommendChart(sql, data) };
+  }
+}
+
+// 使用示例
+const agent = new DataAnalyst();
+console.log(agent.query("上个月各区域的销售额是多少？"));</code></pre>
+
+        <h2>本章产出</h2>
+        <ul>
+          <li>数据分析 Agent 的核心流程：NL → SQL → 执行 → 可视化推荐。</li>
+          <li>SQL 注入防御：只允许 SELECT + LIMIT，禁止 DDL/DML。</li>
+          <li>最小可运行实现，可直接接入真实 LLM 和数据库。</li>
+        </ul>
+
+        <div class="chapter__nav">
+          <a href="/chapters/chapter-15.html" class="chapter__nav-link">← 第 15 章</a>
+          <a href="/chapters/chapter-17.html" class="chapter__nav-link">第 17 章 场景三：客户服务 Agent →</a>
+        </div>
+      </section>
+    </article>
+  </main>
+
+  <script src="/assets/js/main.js" defer></script>
+</body>
+</html>

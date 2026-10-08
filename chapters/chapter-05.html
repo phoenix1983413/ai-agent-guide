@@ -5,13 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>第 5 章 规划与推理 —— AI Agent 权威指南</title>
   <link rel="stylesheet" href="/assets/css/style.css">
-  <meta name="description" content="Agent 的规划与推理能力：思维链 CoT、思维树 ToT、任务分解、重规划机制。">
+  <meta name="description" content="Agent 的规划与推理能力：思维链 CoT、思维树 ToT、任务分解、重规划机制、推理预算。含带重规划的 ToT 任务执行器（Python + TypeScript）。">
 </head>
 <body>
   <nav class="sidebar">
     <div class="sidebar__brand">
       <h2>AI Agent<br>权威指南</h2>
-      <span class="sidebar__version">v0.1 · 前 5 章</span>
+      <span class="sidebar__version">v0.2 · 前 10 章</span>
     </div>
     <ul class="sidebar__nav">
       <li><a href="/" class="nav-item">序章</a></li>
@@ -23,8 +23,11 @@
       <li><a href="/chapters/chapter-03.html" class="nav-item">第 3 章 记忆系统</a></li>
       <li><a href="/chapters/chapter-04.html" class="nav-item">第 4 章 工具使用与函数调用</a></li>
       <li><a href="/chapters/chapter-05.html" class="nav-item nav-item--active">第 5 章 规划与推理</a></li>
+      <li class="nav-section">第二部分 · 核心模块</li>
+      <li><a href="/chapters/chapter-06.html" class="nav-item">第 6 章 多智能体协作</a></li>
+      <li><a href="/chapters/chapter-07.html" class="nav-item">第 7 章 人机交互界面</a></li>
       <li class="nav-section">更多章节</li>
-      <li><span class="nav-item nav-item--disabled">第 6–21 章 · 连载中</span></li>
+      <li><span class="nav-item nav-item--disabled">第 8–21 章 · 连载中</span></li>
     </ul>
     <div class="sidebar__footer">
       <a href="https://github.com/phoenix1983413/ai-agent-guide" target="_blank" rel="noopener">GitHub 仓库</a>
@@ -37,25 +40,360 @@
         <span class="chapter__badge">第 5 章</span>
         <h1 class="chapter__title">规划与推理</h1>
         <p class="chapter__subtitle">CoT / ToT / 任务分解 / 重规划 / 推理预算</p>
-        <div class="coming-soon">
-          <span class="coming-soon__badge">即将发布</span>
-          <p>本章为第 5 章占位页，完整内容将在后续迭代中上线。关注 GitHub 仓库获取更新。</p>
-        </div>
       </header>
 
       <section class="chapter__body">
-        <h2>本章预告</h2>
+        <h2>5.1 思维链（CoT）vs 思维树（ToT）vs 图计划</h2>
+        <p>Agent 面对复杂任务时，不是一步到位，而是先「想清楚」再动手。三种主流推理框架：</p>
+        <table class="table">
+          <thead>
+            <tr><th>框架</th><th>结构</th><th>优势</th><th>代价</th><th>适用场景</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>CoT</td><td>线性链</td><td>简单、快、提示词轻</td><td>容易走偏，无法回溯</td><td>单步推理、算术、常识</td></tr>
+            <tr><td>ToT</td><td>树</td><td>可回溯、可剪枝、多候选</td><td>LLM 调用次数指数增长</td><td>规划、搜索、需要试错的场景</td></tr>
+            <tr><td>GoP</td><td>有向图</td><td>可复用子计划、循环支持</td><td>实现复杂、状态管理重</td><td>长流程、有反馈闭环的任务</td></tr>
+          </tbody>
+        </table>
+        <p><strong>工程实践中的选择原则</strong>：能用 CoT 解决的不要用 ToT；ToT 的 branching factor（每节点候选数）建议 2–3，depth 建议 2–3；超过这个量级，优先考虑人工模板 + LLM 填充，而不是纯 LLM 生成。</p>
+
+        <h2>5.2 任务分解：LLM 自动拆解 vs 人工模板</h2>
+        <p>任务分解是把用户目标变成可执行步骤的过程。两种极端：</p>
         <ul>
-          <li>5.1 思维链（CoT）vs 思维树（ToT）vs 图计划</li>
-          <li>5.2 任务分解：LLM 自动拆解 vs 人工模板</li>
-          <li>5.3 计划执行与动态调整：遇到失败时的重规划</li>
-          <li>5.4 推理预算：何时停止思考、何时直接行动</li>
+          <li><strong>LLM 全自动拆解</strong>： prompt 里写「把目标拆成 N 个步骤」，让模型输出 JSON 数组。优点是灵活，缺点是步骤粒度、顺序、依赖关系不可控。</li>
+          <li><strong>人工固定模板</strong>：如「调研 → 分析 → 报告」三步走。优点是可靠，缺点是无法适应非常规任务。</li>
         </ul>
-        <p><strong>本章产出</strong>：一个带重规划的 ToT 任务执行器（Python + TypeScript）。</p>
+        <p><strong>生产级做法是混合模式</strong>：人工定义骨架（如「先验证输入，再执行，最后总结」），LLM 填充每个骨架节点的具体参数和子任务。这样既有结构安全，又有灵活性。</p>
+
+        <h2>5.3 计划执行与动态调整：重规划</h2>
+        <p>Agent 执行计划时最常见的故障模式不是「想不出来」，而是「执行中遇到意外」。重规划（replanning）解决的就是这个问题。</p>
+        <p>重规划的触发条件：</p>
+        <ul>
+          <li>工具返回业务错误（如「库存不足」「权限被拒绝」）</li>
+          <li>连续 N 次工具调用失败（瞬态错误超过重试上限）</li>
+          <li>Agent 自身判断「当前路径走不通」</li>
+          <li>用户中途改口、追加约束</li>
+        </ul>
+        <p>重规划策略：</p>
+        <ol>
+          <li><strong>局部修补</strong>：只重算失败节点及其下游，保留已验证的上游。</li>
+          <li><strong>全局重算</strong>：把当前状态（已完成步骤 + 剩余目标）作为新上下文，让 LLM 重新生成完整计划。</li>
+          <li><strong>降级执行</strong>：如果重算仍然失败，切换到人工接管或返回部分结果。</li>
+        </ol>
+
+        <h2>5.4 推理预算：何时停止思考、何时直接行动</h2>
+        <p>Agent 很容易陷入「想太多」或「想太少」两个极端。推理预算（reasoning budget）是控制这个平衡的工程手段。</p>
+        <ul>
+          <li><strong>时间预算</strong>：单次推理最大延迟（如 2s）。超时则直接行动或返回降级结果。</li>
+          <li><strong>Token 预算</strong>：思考过程的最大 token 数。超出则截断或切换到更快的模型。</li>
+          <li><strong>步数预算</strong>：ToT 的最大深度、CoT 的最大轮数。防止无限展开。</li>
+          <li><strong>成本预算</strong>：单任务最大 API 费用。超出则停止或降级。</li>
+        </ul>
+        <p>预算不是硬上限，而是<strong>软约束 + 人工可配置</strong>。生产系统应该暴露这些参数给运营者，让不同任务类型（如客服 vs 研发）使用不同预算档位。</p>
+
+        <h2>本章产出：带重规划的 ToT 任务执行器（双语言）</h2>
+        <p>下面是一个简化但可运行的 ToT 执行器。核心逻辑：用 LLM 评估每个 thought 的可行性，选择最佳分支继续展开；执行失败时触发重规划。</p>
+
+        <h3>Python 版本</h3>
+        <pre><code class="language-python">"""
+带重规划的 ToT 任务执行器 —— Python
+依赖：openai >= 1.0
+"""
+from __future__ import annotations
+import json, time
+from dataclasses import dataclass, field
+from typing import Any
+from openai import OpenAI
+
+client = OpenAI()
+
+@dataclass
+class Thought:
+    id: str
+    text: str
+    score: float = 0.0
+    depth: int = 0
+    parent: Thought | None = None
+    children: list[Thought] = field(default_factory=list)
+    result: str | None = None
+
+class ToTPlanner:
+    def __init__(
+        self,
+        model: str = "gpt-4o",
+        max_depth: int = 3,
+        branch_factor: int = 2,
+        max_retry: int = 2,
+    ):
+        self.model = model
+        self.max_depth = max_depth
+        self.branch_factor = branch_factor
+        self.max_retry = max_retry
+
+    def _chat(self, messages: list[dict], **kw) -> str:
+        r = client.chat.completions.create(
+            model=self.model, messages=messages, temperature=0.7, **kw
+        )
+        return r.choices[0].message.content or ""
+
+    def generate_thoughts(self, goal: str, context: str, depth: int) -> list[str]:
+        prompt = (
+            f"目标：{goal}\n当前进度：{context}\n"
+            f"请生成 {self.branch_factor} 个下一步 thought（每行一个，编号）：\n"
+        )
+        text = self._chat([{"role": "user", "content": prompt}])
+        lines = [l.strip() for l in text.splitlines() if l.strip()]
+        # 提取编号行：1. xxx 或 - xxx
+        thoughts = []
+        for line in lines:
+            if line[0].isdigit() or line.startswith("-"):
+                thoughts.append(line.lstrip("0123456789.- ").strip())
+        return thoughts[: self.branch_factor]
+
+    def evaluate(self, goal: str, thought: str) -> float:
+        prompt = (
+            f"目标：{goal}\n候选步骤：{thought}\n"
+            "请评估该步骤对目标的贡献度（0~1 浮点数，只返回数字）："
+        )
+        text = self._chat([{"role": "user", "content": prompt}])
+        try:
+            return float(text.strip())
+        except ValueError:
+            return 0.0
+
+    def execute(self, thought: Thought) -> str:
+        """模拟执行：实际场景替换为真实工具调用。"""
+        # 这里用规则模拟成功/失败
+        if "失败" in thought.text or "error" in thought.text.lower():
+            raise RuntimeError("模拟执行失败")
+        return f"已完成：{thought.text}"
+
+    def run(self, goal: str) -> str:
+        root = Thought(id="root", text=goal, depth=0)
+        best = self._search(root, goal)
+        return best.result or "未完成"
+
+    def _search(self, node: Thought, goal: str) -> Thought:
+        if node.depth >= self.max_depth:
+            node.result = f"达到最大深度：{node.text}"
+            return node
+
+        # 生成候选 thoughts
+        context = self._path_text(node)
+        candidates = self.generate_thoughts(goal, context, node.depth)
+        if not candidates:
+            node.result = "无候选步骤"
+            return node
+
+        # 评估并展开
+        best_child = None
+        for i, text in enumerate(candidates):
+            child = Thought(id=f"{node.id}-{i}", text=text, depth=node.depth + 1, parent=node)
+            child.score = self.evaluate(goal, text)
+            node.children.append(child)
+            if best_child is None or child.score > best_child.score:
+                best_child = child
+
+        # 执行最佳分支，失败则重规划
+        retry = 0
+        while retry <= self.max_retry:
+            try:
+                best_child.result = self.execute(best_child)
+                return best_child
+            except Exception as e:
+                retry += 1
+                if retry > self.max_retry:
+                    best_child.result = f"执行失败（已重试 {retry} 次）：{e}"
+                    return best_child
+                # 重规划：重新生成候选
+                context = self._path_text(node) + f"\n（上一步失败：{e}）"
+                candidates = self.generate_thoughts(goal, context, node.depth)
+                if candidates:
+                    best_child = Thought(id=f"{node.id}-r{retry}", text=candidates[0], depth=node.depth + 1, parent=node)
+                    best_child.score = self.evaluate(goal, candidates[0])
+                    node.children.append(best_child)
+
+        return best_child
+
+    def _path_text(self, node: Thought) -> str:
+        parts = []
+        cur = node
+        while cur and cur.parent:
+            parts.append(cur.text)
+            cur = cur.parent
+        return " -> ".join(reversed(parts)) or node.text
+
+if __name__ == "__main__":
+    planner = ToTPlanner(max_depth=2, branch_factor=2)
+    result = planner.run("写一篇关于 AI Agent 的博客文章大纲")
+    print("执行结果：", result)</code></pre>
+
+        <h3>TypeScript 版本</h3>
+        <pre><code class="language-typescript">/**
+带重规划的 ToT 任务执行器 —— TypeScript
+依赖：openai >= 4.0
+*/
+import OpenAI from "openai";
+
+interface Thought {
+  id: string;
+  text: string;
+  score: number;
+  depth: number;
+  parent: Thought | null;
+  children: Thought[];
+  result?: string;
+}
+
+class ToTPlanner {
+  private model = "gpt-4o";
+  private maxDepth: number;
+  private branchFactor: number;
+  private maxRetry: number;
+  private client: OpenAI;
+
+  constructor(opts: { model?: string; maxDepth?: number; branchFactor?: number; maxRetry?: number } = {}) {
+    this.model = opts.model ?? "gpt-4o";
+    this.maxDepth = opts.maxDepth ?? 3;
+    this.branchFactor = opts.branchFactor ?? 2;
+    this.maxRetry = opts.maxRetry ?? 2;
+    this.client = new OpenAI();
+  }
+
+  private async chat(messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[]): Promise<string> {
+    const r = await this.client.chat.completions.create({
+      model: this.model,
+      messages,
+      temperature: 0.7,
+    });
+    return r.choices[0]?.message?.content ?? "";
+  }
+
+  private async generateThoughts(goal: string, context: string, depth: number): Promise<string[]> {
+    const text = await this.chat([
+      { role: "user" as const, content: `目标：${goal}\n当前进度：${context}\n请生成 ${this.branchFactor} 个下一步 thought（每行一个，编号）：` },
+    ]);
+    return text.split("\n")
+      .map(l => l.trim())
+      .filter(l => /^(\d+\.|-)/.test(l))
+      .map(l => l.replace(/^\d+\.\s*/, "").replace(/^-\s*/, ""))
+      .slice(0, this.branchFactor);
+  }
+
+  private async evaluate(goal: string, thought: string): Promise<number> {
+    const text = await this.chat([
+      { role: "user" as const, content: `目标：${goal}\n候选步骤：${thought}\n请评估该步骤对目标的贡献度（0~1 浮点数，只返回数字）：` },
+    ]);
+    const n = parseFloat(text.trim());
+    return Number.isFinite(n) ? n : 0;
+  }
+
+  private async execute(thought: Thought): Promise<string> {
+    // 模拟执行：实际场景替换为真实工具调用
+    if (/失败|error/.test(thought.text)) throw new Error("模拟执行失败");
+    return `已完成：${thought.text}`;
+  }
+
+  private pathText(node: Thought): string {
+    const parts: string[] = [];
+    let cur: Thought | null = node;
+    while (cur && cur.parent) {
+      parts.push(cur.text);
+      cur = cur.parent;
+    }
+    return parts.reverse().join(" -> ") || node.text;
+  }
+
+  async run(goal: string): Promise<string> {
+    const root: Thought = { id: "root", text: goal, score: 0, depth: 0, parent: null, children: [] };
+    const best = await this.search(root, goal);
+    return best.result ?? "未完成";
+  }
+
+  private async search(node: Thought, goal: string): Promise<Thought> {
+    if (node.depth >= this.maxDepth) {
+      node.result = `达到最大深度：${node.text}`;
+      return node;
+    }
+
+    const context = this.pathText(node);
+    const candidates = await this.generateThoughts(goal, context, node.depth);
+    if (candidates.length === 0) {
+      node.result = "无候选步骤";
+      return node;
+    }
+
+    let bestChild: Thought | null = null;
+    for (let i = 0; i < candidates.length; i++) {
+      const child: Thought = {
+        id: `${node.id}-${i}`,
+        text: candidates[i],
+        score: 0,
+        depth: node.depth + 1,
+        parent: node,
+        children: [],
+      };
+      child.score = await this.evaluate(goal, candidates[i]);
+      node.children.push(child);
+      if (!bestChild || child.score > bestChild.score) bestChild = child;
+    }
+
+    if (!bestChild) {
+      node.result = "无有效候选";
+      return node;
+    }
+
+    // 执行最佳分支，失败则重规划
+    let retry = 0;
+    while (retry <= this.maxRetry) {
+      try {
+        bestChild.result = await this.execute(bestChild);
+        return bestChild;
+      } catch (e: any) {
+        retry++;
+        if (retry > this.maxRetry) {
+          bestChild.result = `执行失败（已重试 ${retry} 次）：${e.message}`;
+          return bestChild;
+        }
+        // 重规划
+        const newCtx = `${context}\n（上一步失败：${e.message}）`;
+        const newCandidates = await this.generateThoughts(goal, newCtx, node.depth);
+        if (newCandidates.length > 0) {
+          const nb: Thought = {
+            id: `${node.id}-r${retry}`,
+            text: newCandidates[0],
+            score: 0,
+            depth: node.depth + 1,
+            parent: node,
+            children: [],
+          };
+          nb.score = await this.evaluate(goal, newCandidates[0]);
+          node.children.push(nb);
+          bestChild = nb;
+        }
+      }
+    }
+    return bestChild;
+  }
+}
+
+// 使用示例
+(async () => {
+  const planner = new ToTPlanner({ maxDepth: 2, branchFactor: 2 });
+  const result = await planner.run("写一篇关于 AI Agent 的博客文章大纲");
+  console.log("执行结果：", result);
+})();</code></pre>
+
+        <h2>本章产出</h2>
+        <ul>
+          <li>一个带重规划的 ToT 任务执行器，支持最大深度、分支因子、重试次数配置。</li>
+          <li>Python 版可直接接入 OpenAI API；TypeScript 版适合 Node.js / Edge 环境。</li>
+          <li>生产环境替换 <code>execute()</code> 里的模拟逻辑为真实工具调用即可。</li>
+        </ul>
 
         <div class="chapter__nav">
           <a href="/chapters/chapter-04.html" class="chapter__nav-link">← 第 4 章</a>
-          <a href="/" class="chapter__nav-link">返回首页 →</a>
+          <a href="/chapters/chapter-06.html" class="chapter__nav-link">第 6 章 多智能体协作 →</a>
         </div>
       </section>
     </article>

@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>第 6 章 多智能体协作 —— AI Agent 权威指南</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <meta name="description" content="多智能体系统的角色设计、通信协议、协调模式、冲突解决与工程实践。含管道/辩论/层次三种协作模式的代码示例（Python + TypeScript）。">
+</head>
+<body>
+  <nav class="sidebar">
+    <div class="sidebar__brand">
+      <h2>AI Agent<br>权威指南</h2>
+      <span class="sidebar__version">v0.2 · 前 10 章</span>
+    </div>
+    <ul class="sidebar__nav">
+      <li><a href="/" class="nav-item">序章</a></li>
+      <li class="nav-section">Part 0 · 决策者视角</li>
+      <li><a href="/chapters/part-0.html" class="nav-item">Part 0 为什么需要了解 Agent</a></li>
+      <li class="nav-section">第一部分 · 基础</li>
+      <li><a href="/chapters/chapter-01.html" class="nav-item">第 1 章 什么是 AI Agent</a></li>
+      <li><a href="/chapters/chapter-02.html" class="nav-item">第 2 章 Agent 架构通用模式</a></li>
+      <li><a href="/chapters/chapter-03.html" class="nav-item">第 3 章 记忆系统</a></li>
+      <li><a href="/chapters/chapter-04.html" class="nav-item">第 4 章 工具使用与函数调用</a></li>
+      <li><a href="/chapters/chapter-05.html" class="nav-item">第 5 章 规划与推理</a></li>
+      <li class="nav-section">第二部分 · 核心模块</li>
+      <li><a href="/chapters/chapter-06.html" class="nav-item nav-item--active">第 6 章 多智能体协作</a></li>
+      <li><a href="/chapters/chapter-07.html" class="nav-item">第 7 章 人机交互界面</a></li>
+      <li class="nav-section">更多章节</li>
+      <li><span class="nav-item nav-item--disabled">第 8–21 章 · 连载中</span></li>
+    </ul>
+    <div class="sidebar__footer">
+      <a href="https://github.com/phoenix1983413/ai-agent-guide" target="_blank" rel="noopener">GitHub 仓库</a>
+    </div>
+  </nav>
+
+  <main class="content">
+    <article class="chapter">
+      <header class="chapter__header">
+        <span class="chapter__badge">第 6 章</span>
+        <h1 class="chapter__title">多智能体协作</h1>
+        <p class="chapter__subtitle">角色设计 / 通信协议 / 协调模式 / 冲突解决 / 管道·辩论·层次</p>
+      </header>
+
+      <section class="chapter__body">
+        <h2>6.1 角色设计</h2>
+        <p>多 Agent 系统不是简单堆 Agent，而是按职责分工。四种基础角色：</p>
+        <ul>
+          <li><strong>专家型（Specialist）</strong>：窄领域深度能力，如「代码搜索 Agent」「SQL 生成 Agent」。一个 Agent 一个专长。</li>
+          <li><strong>评审型（Reviewer）</strong>：不生产内容，只检查其他 Agent 的输出，如「安全审计 Agent」「风格评审 Agent」。</li>
+          <li><strong>执行型（Executor）</strong>：调用工具、写文件、发请求。是系统的「手」。</li>
+          <li><strong>协调型（Orchestrator）</strong>：负责任务分解、路由、结果汇总。是系统的「大脑」。</li>
+        </ul>
+        <p>生产级系统通常 1 个协调型 + N 个专家/执行型，评审型按需插入。角色过多会导致通信 overhead 指数上升，建议初期控制在 3–5 个。</p>
+
+        <h2>6.2 通信协议</h2>
+        <p>Agent 之间的消息必须结构化和可追踪。最小协议包含：</p>
+        <ul>
+          <li><code>id</code>：消息唯一 ID（UUID）。</li>
+          <li><code>from</code> / <code>to</code>：发送方 / 接收方 Agent ID。</li>
+          <li><code>type</code>：消息类型（request / response / event / error）。</li>
+          <li><code>payload</code>：业务数据。</li>
+          <li><code>priority</code>：优先级（high / normal / low），用于抢占。</li>
+          <li><code>ttl</code>：超时毫秒数，防止消息堆积。</li>
+        </ul>
+        <p>通信方式：同步 RPC（适合短链路、低延迟）、异步消息队列（适合长任务、解耦）、事件总线（适合广播、日志）。生产环境优先用消息队列，便于限流、重试、死信处理。</p>
+
+        <h2>6.3 协调模式</h2>
+        <table class="table">
+          <thead>
+            <tr><th>模式</th><th>拓扑</th><th>优点</th><th>缺点</th><th>适用场景</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>集中式编排</td><td>星型</td><td>控制力强、易调试、路由集中</td><td>单点瓶颈、协调者复杂度高</td><td>任务明确、步骤固定</td></tr>
+            <tr><td>去中心化协商</td><td>网状</td><td>灵活、无单点、可扩展</td><td>消息风暴、冲突难解、调试困难</td><td>探索性任务、开放域</td></tr>
+            <tr><td>层次模式</td><td>树型</td><td>层级清晰、局部自治</td><td>跨层通信慢</td><td>大系统、组织架构映射</td></tr>
+          </tbody>
+        </table>
+
+        <h2>6.4 冲突解决</h2>
+        <p>多 Agent 同时操作同一资源或对同一问题给出不同答案时，需要冲突解决机制：</p>
+        <ul>
+          <li><strong>投票</strong>：多个评审 Agent 投票，多数通过。适合评审场景。</li>
+          <li><strong>仲裁</strong>：指定一个高优先级 Agent 做最终决定。适合层级系统。</li>
+          <li><strong>优先级抢占</strong>：高优先级消息中断低优先级执行。适合实时系统。</li>
+          <li><strong>时间戳优先</strong>：先到先得，后续覆盖。适合缓存、状态更新。</li>
+        </ul>
+
+        <h2>6.5 实际模式：管道、辩论、层次</h2>
+        <p>三种工程上最常用的协作模板：</p>
+        <ul>
+          <li><strong>管道（Pipeline）</strong>：Agent A → Agent B → Agent C，串行处理。像流水线，适合有明确顺序的步骤。</li>
+          <li><strong>辩论（Debate）</strong>：多个 Agent 对同一问题轮流发言，最后投票或综合。适合需要多角度审视的场景。</li>
+          <li><strong>层次（Hierarchy）</strong>：顶层 Agent 拆解任务，分配给中层，中层再分配给底层。适合复杂项目。</li>
+        </ul>
+
+        <h2>本章产出：三种协作模式的代码骨架（双语言）</h2>
+        <p>下面实现一个最小消息总线，并用它演示管道、辩论、层次三种模式。</p>
+
+        <h3>Python 版本</h3>
+        <pre><code class="language-python">"""
+多智能体协作骨架 —— Python
+"""
+from __future__ import annotations
+import uuid
+from dataclasses import dataclass, field
+from typing import Any, Callable, Awaitable
+
+# ---- 基础协议 ----
+@dataclass
+class Message:
+    id: str = field(default_factory=lambda: uuid.uuid4().hex[:8])
+    from_agent: str = ""
+    to_agent: str = ""
+    type: str = "request"  # request | response | event | error
+    payload: Any = None
+    priority: int = 0  # 越高越优先
+    ttl: int = 5000
+
+AgentHandler = Callable[[Message], Awaitable[Message]]
+
+class MessageBus:
+    def __init__(self):
+        self._subs: dict[str, list[AgentHandler]] = {}
+
+    def subscribe(self, agent_id: str, handler: AgentHandler):
+        self._subs.setdefault(agent_id, []).append(handler)
+
+    async def send(self, msg: Message) -> Message:
+        handlers = self._subs.get(msg.to_agent, [])
+        if not handlers:
+            return Message(from_agent="bus", to_agent=msg.from_agent, type="error", payload="no handler")
+        # 简单路由：取第一个匹配 handler
+        return await handlers[0](msg)
+
+# ---- 三种模式 ----
+
+# 1. 管道：A -> B -> C
+async def pipeline_example(bus: MessageBus):
+    async def agent_a(msg: Message) -> Message:
+        return Message(from_agent="A", to_agent="B", type="request", payload=f"A处理过: {msg.payload}")
+    async def agent_b(msg: Message) -> Message:
+        return Message(from_agent="B", to_agent="C", type="request", payload=f"B处理过: {msg.payload}")
+    async def agent_c(msg: Message) -> Message:
+        return Message(from_agent="C", to_agent="A", type="response", payload=f"C完成: {msg.payload}")
+
+    for id_, fn in [("A", agent_a), ("B", agent_b), ("C", agent_c)]:
+        bus.subscribe(id_, fn)
+
+    res = await bus.send(Message(from_agent="user", to_agent="A", payload="原始任务"))
+    return res.payload
+
+# 2. 辩论：多个 Agent 轮流发言
+async def debate_example(bus: MessageBus, rounds: int = 2):
+    opinions = ["支持", "反对", "有条件支持"]
+    async def debater(msg: Message) -> Message:
+        idx = int(msg.to_agent[-1]) - 1
+        return Message(from_agent=msg.to_agent, to_agent="moderator",
+                       type="response", payload=f"{msg.to_agent}: {opinions[idx % 3]}")
+    for i in range(1, 4):
+        bus.subscribe(f"debater{i}", debater)
+
+    results = []
+    for r in range(rounds):
+        for i in range(1, 4):
+            msg = Message(from_agent="moderator", to_agent=f"debater{i}", payload=f"第{r+1}轮")
+            res = await bus.send(msg)
+            results.append(res.payload)
+    return results
+
+# 3. 层次：顶层拆解 -> 中层分配 -> 底层执行
+async def hierarchy_example(bus: MessageBus):
+    async def orchestrator(msg: Message) -> Message:
+        return Message(from_agent="orchestrator", to_agent="worker", payload=["子任务1", "子任务2"])
+    async def worker(msg: Message) -> Message:
+        tasks = msg.payload if isinstance(msg.payload, list) else [msg.payload]
+        return Message(from_agent="worker", to_agent="orchestrator",
+                       type="response", payload=[f"完成:{t}" for t in tasks])
+
+    bus.subscribe("orchestrator", orchestrator)
+    bus.subscribe("worker", worker)
+    res = await bus.send(Message(from_agent="user", to_agent="orchestrator", payload="总任务"))
+    return res.payload
+
+if __name__ == "__main__":
+    import asyncio
+    bus = MessageBus()
+    print("管道:", asyncio.run(pipeline_example(bus)))
+    print("辩论:", asyncio.run(debate_example(bus)))
+    print("层次:", asyncio.run(hierarchy_example(bus)))</code></pre>
+
+        <h3>TypeScript 版本</h3>
+        <pre><code class="language-typescript">/**
+多智能体协作骨架 —— TypeScript
+*/
+import { v4 as uuidv4 } from "uuid";
+
+// ---- 基础协议 ----
+interface Message {
+  id: string;
+  fromAgent: string;
+  toAgent: string;
+  type: "request" | "response" | "event" | "error";
+  payload: any;
+  priority: number;
+  ttl: number;
+}
+
+type AgentHandler = (msg: Message) => Promise<Message>;
+
+class MessageBus {
+  private subs: Map<string, AgentHandler[]> = new Map();
+
+  subscribe(agentId: string, handler: AgentHandler) {
+    const arr = this.subs.get(agentId) ?? [];
+    arr.push(handler);
+    this.subs.set(agentId, arr);
+  }
+
+  async send(msg: Message): Promise<Message> {
+    const handlers = this.subs.get(msg.toAgent) ?? [];
+    if (handlers.length === 0) {
+      return { ...msg, fromAgent: "bus", toAgent: msg.fromAgent, type: "error", payload: "no handler" };
+    }
+    return handlers[0](msg);
+  }
+}
+
+// ---- 三种模式 ----
+
+// 1. 管道
+async function pipelineExample(bus: MessageBus): Promise<string> {
+  const agentA: AgentHandler = async (msg) => ({
+    ...msg, fromAgent: "A", toAgent: "B", payload: `A处理过: ${msg.payload}` });
+  const agentB: AgentHandler = async (msg) => ({
+    ...msg, fromAgent: "B", toAgent: "C", payload: `B处理过: ${msg.payload}` });
+  const agentC: AgentHandler = async (msg) => ({
+    ...msg, fromAgent: "C", toAgent: "A", type: "response", payload: `C完成: ${msg.payload}` });
+
+  bus.subscribe("A", agentA);
+  bus.subscribe("B", agentB);
+  bus.subscribe("C", agentC);
+
+  const res = await bus.send({ id: uuidv4().slice(0, 8), fromAgent: "user", toAgent: "A", type: "request", payload: "原始任务", priority: 0, ttl: 5000 });
+  return res.payload;
+}
+
+// 2. 辩论
+async function debateExample(bus: MessageBus, rounds: number = 2): Promise<string[]> {
+  const opinions = ["支持", "反对", "有条件支持"];
+  const debater: AgentHandler = async (msg) => ({
+    ...msg, fromAgent: msg.toAgent, toAgent: "moderator", type: "response",
+    payload: `${msg.toAgent}: ${opinions[parseInt(msg.toAgent.slice(-1)) - 1]}` });
+  for (let i = 1; i <= 3; i++) bus.subscribe(`debater${i}`, debater);
+
+  const results: string[] = [];
+  for (let r = 0; r < rounds; r++) {
+    for (let i = 1; i <= 3; i++) {
+      const res = await bus.send({ id: uuidv4().slice(0, 8), fromAgent: "moderator", toAgent: `debater${i}`, type: "request", payload: `第${r+1}轮`, priority: 0, ttl: 5000 });
+      results.push(res.payload);
+    }
+  }
+  return results;
+}
+
+// 3. 层次
+async function hierarchyExample(bus: MessageBus): Promise<string[]> {
+  const orchestrator: AgentHandler = async (msg) => ({
+    ...msg, fromAgent: "orchestrator", toAgent: "worker", payload: ["子任务1", "子任务2"] });
+  const worker: AgentHandler = async (msg) => {
+    const tasks = Array.isArray(msg.payload) ? msg.payload : [msg.payload];
+    return { ...msg, fromAgent: "worker", toAgent: "orchestrator", type: "response",
+             payload: tasks.map(t => `完成:${t}`) };
+  };
+
+  bus.subscribe("orchestrator", orchestrator);
+  bus.subscribe("worker", worker);
+  const res = await bus.send({ id: uuidv4().slice(0, 8), fromAgent: "user", toAgent: "orchestrator", type: "request", payload: "总任务", priority: 0, ttl: 5000 });
+  return res.payload;
+}
+
+// 使用示例
+(async () => {
+  const bus = new MessageBus();
+  console.log("管道:", await pipelineExample(bus));
+  console.log("辩论:", await debateExample(bus));
+  console.log("层次:", await hierarchyExample(bus));
+})();</code></pre>
+
+        <h2>本章产出</h2>
+        <ul>
+          <li>一个最小消息总线（MessageBus），支持订阅 / 发送 / 优先级。</li>
+          <li>三种协作模式的完整骨架：管道（串行流）、辩论（多轮评审）、层次（分层委派）。</li>
+          <li>可直接扩展：替换 handler 里的模拟逻辑为真实 LLM 调用或工具执行。</li>
+        </ul>
+
+        <div class="chapter__nav">
+          <a href="/chapters/chapter-05.html" class="chapter__nav-link">← 第 5 章</a>
+          <a href="/chapters/chapter-07.html" class="chapter__nav-link">第 7 章 人机交互界面 →</a>
+        </div>
+      </section>
+    </article>
+  </main>
+
+  <script src="/assets/js/main.js" defer></script>
+</body>
+</html>

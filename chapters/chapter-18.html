@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>第 18 章 场景四：个人助理 Agent —— AI Agent 权威指南</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <meta name="description" content="个人助理 Agent 设计：日程管理、邮件分类、信息摘要、主动 vs 被动触发的平衡。含最小个人助理实现（Python + TypeScript）。">
+</head>
+<body>
+  <nav class="sidebar">
+    <div class="sidebar__brand">
+      <h2>AI Agent<br>权威指南</h2>
+      <span class="sidebar__version">v0.2 · 前 10 章</span>
+    </div>
+    <ul class="sidebar__nav">
+      <li><a href="/" class="nav-item">序章</a></li>
+      <li class="nav-section">Part 0 · 决策者视角</li>
+      <li><a href="/chapters/part-0.html" class="nav-item">Part 0 为什么需要了解 Agent</a></li>
+      <li class="nav-section">第一部分 · 基础</li>
+      <li><a href="/chapters/chapter-01.html" class="nav-item">第 1 章 什么是 AI Agent</a></li>
+      <li><a href="/chapters/chapter-02.html" class="nav-item">第 2 章 Agent 架构通用模式</a></li>
+      <li><a href="/chapters/chapter-03.html" class="nav-item">第 3 章 记忆系统</a></li>
+      <li><a href="/chapters/chapter-04.html" class="nav-item">第 4 章 工具使用与函数调用</a></li>
+      <li><a href="/chapters/chapter-05.html" class="nav-item">第 5 章 规划与推理</a></li>
+      <li class="nav-section">第二部分 · 核心模块</li>
+      <li><a href="/chapters/chapter-06.html" class="nav-item">第 6 章 多智能体协作</a></li>
+      <li><a href="/chapters/chapter-07.html" class="nav-item">第 7 章 人机交互界面</a></li>
+      <li><a href="/chapters/chapter-08.html" class="nav-item">第 8 章 提示工程（Prompt Engineering）的工程化</a></li>
+      <li><a href="/chapters/chapter-09.html" class="nav-item">第 9 章 Agent 评测与红线</a></li>
+      <li><a href="/chapters/chapter-10.html" class="nav-item">第 10 章 可观测性与调试</a></li>
+      <li><a href="/chapters/chapter-11.html" class="nav-item">第 11 章 安全、合规与治理</a></li>
+      <li><a href="/chapters/chapter-12.html" class="nav-item">第 12 章 Agent 的自我进化</a></li>
+      <li><a href="/chapters/chapter-13.html" class="nav-item">第 13 章 Agent 与外部系统集成</a></li>
+      <li><a href="/chapters/chapter-14.html" class="nav-item">第 14 章 性能优化与成本控制</a></li>
+      <li><a href="/chapters/chapter-15.html" class="nav-item">第 15 章 场景一：研发助手（代码级 Agent）</a></li>
+      <li><a href="/chapters/chapter-16.html" class="nav-item">第 16 章 场景二：数据分析 Agent</a></li>
+      <li><a href="/chapters/chapter-17.html" class="nav-item">第 17 章 场景三：客户服务 Agent</a></li>
+      <li><a href="/chapters/chapter-18.html" class="nav-item nav-item--active">第 18 章 场景四：个人助理 Agent</a></li>
+      <li class="nav-section">更多章节</li>
+      <li><span class="nav-item nav-item--disabled">第 19–21 章 · 连载中</span></li>
+    </ul>
+    <div class="sidebar__footer">
+      <a href="https://github.com/phoenix1983413/ai-agent-guide" target="_blank" rel="noopener">GitHub 仓库</a>
+    </div>
+  </nav>
+
+  <main class="content">
+    <article class="chapter">
+      <header class="chapter__header">
+        <span class="chapter__badge">第 18 章</span>
+        <h1 class="chapter__title">场景四：个人助理 Agent</h1>
+        <p class="chapter__subtitle">日程管理 / 邮件分类 / 信息摘要 / 主动 vs 被动触发</p>
+      </header>
+
+      <section class="chapter__body">
+        <h2>18.1 需求：日程管理、邮件分类、信息摘要</h2>
+        <p>个人助理 Agent 是 C 端最贴近用户的形态。核心能力：</p>
+        <ul>
+          <li><strong>日程管理</strong>：自然语言创建会议、检测冲突、建议最佳时间。</li>
+          <li><strong>邮件分类</strong>：自动归档、标记垃圾邮件、提取待办事项。</li>
+          <li><strong>信息摘要</strong>：把长文章、长邮件压缩成 bullet points，支持「详细版 / 精简版」切换。</li>
+          <li><strong>提醒</strong>：基于位置、时间、事件的主动提醒（如「你还有 30 分钟到下一个会议」）。</li>
+        </ul>
+
+        <h2>18.2 工具：日历、邮件、IM、提醒</h2>
+        <p>个人助理的工具栈高度依赖平台 API：</p>
+        <ul>
+          <li><strong>日历</strong>：Google Calendar / Outlook / 苹果日历。创建 / 查询 / 冲突检测。</li>
+          <li><strong>邮件</strong>：Gmail / Outlook API。分类、标记、发送。</li>
+          <li><strong>IM</strong>：微信 / Slack / Telegram。被动接收 + 主动推送。</li>
+          <li><strong>提醒</strong>：系统级通知 + 应用内 badge + 邮件兜底。</li>
+        </ul>
+
+        <h2>18.3 记忆：用户习惯、优先级、隐私保护</h2>
+        <p>个人助理记忆的粒度比其他场景更细：</p>
+        <ul>
+          <li><strong>习惯学习</strong>：用户通常 9 点到公司、周五下午不排会、讨厌早上 8 点前的会议邀请。</li>
+          <li><strong>优先级</strong>：老板的邮件 &gt; 客户的邮件 &gt; 营销邮件。</li>
+          <li><strong>隐私保护</strong>：个人助理掌握大量敏感信息（健康、财务、位置），必须端侧优先、加密存储、最小化上传。</li>
+        </ul>
+
+        <h2>18.4 设计：主动 vs 被动触发的平衡</h2>
+        <p>个人助理最容易犯的错误是「太主动」——未经允许发消息、推通知、改日程。平衡原则：</p>
+        <ul>
+          <li><strong>默认被动</strong>：用户问什么答什么，不多嘴。</li>
+          <li><strong>低摩擦确认</strong>：主动建议时用「一键确认」，不要要求用户重新输入。</li>
+          <li><strong>免打扰</strong>：夜间、会议中、驾驶模式自动静默，只保留紧急通知。</li>
+          <li><strong>可解释性</strong>：每次主动行动都要说明理由（「因为你明天早上有个重要会议，我帮你推迟了今天的提醒」）。</li>
+        </ul>
+
+        <h2>本章产出：最小个人助理实现（双语言）</h2>
+
+        <h3>Python 版本</h3>
+        <pre><code class="language-python">"""
+最小个人助理 Agent —— Python
+"""
+from __future__ import annotations
+from dataclasses import dataclass, field
+from typing import Any
+import re
+
+@dataclass
+class UserProfile:
+    name: str
+    habits: dict[str, Any] = field(default_factory=dict)
+    priorities: dict[str, int] = field(default_factory=dict)
+
+class PersonalAssistant:
+    def __init__(self, profile: UserProfile):
+        self.profile = profile
+        self.events: list[dict] = []
+        self.emails: list[dict] = []
+
+    def add_event(self, title: str, when: str):
+        self.events.append({"title": title, "when": when, "alarm": True})
+        return f"已添加：{title} @ {when}"
+
+    def classify_email(self, subject: str, body: str) -> str:
+        if "发票" in subject or "报销" in subject: return "finance"
+        if "会议" in subject or "邀请" in subject: return "calendar"
+        if "促销" in subject or "折扣" in subject: return "promotion"
+        return "inbox"
+
+    def summarize(self, text: str, style: str = "short") -> str:
+        sentences = text.split("。")
+        if style == "short": return "。".join(sentences[:2]) + "。"
+        return text[:200] + "…"
+
+    def should_notify(self, event: dict) -> bool:
+        hour = int(event["when"].split(":")[0]) if ":" in event["when"] else 9
+        return 9 <= hour <= 22  # 9–22 点通知，其余免打扰
+
+# 使用示例
+if __name__ == "__main__":
+    assistant = PersonalAssistant(UserProfile(name="张三", habits={"work_start": "09:00"}))
+    print(assistant.add_event("产品评审会", "2024-10-10 14:00"))
+    print("邮件分类:", assistant.classify_email("发票报销通知", "请提交发票"))
+    print("摘要:", assistant.summarize("今天是美好的一天。我们讨论了产品路线图。会议非常成功。大家一致同意下季度重点推进 Agent 场景落地。", "short"))</code></pre>
+
+        <h3>TypeScript 版本</h3>
+        <pre><code class="language-typescript">/**
+最小个人助理 Agent —— TypeScript
+*/
+interface UserProfile { name: string; habits: Record<string, any>; priorities: Record<string, number>; }
+
+class PersonalAssistant {
+  private profile: UserProfile;
+  private events: Array<Record<string, any>> = [];
+  private emails: Array<Record<string, any>> = [];
+
+  constructor(profile: UserProfile) { this.profile = profile; }
+
+  addEvent(title: string, when: string): string {
+    this.events.push({ title, when, alarm: true });
+    return `已添加：${title} @ ${when}`;
+  }
+
+  classifyEmail(subject: string, _body: string): string {
+    if (subject.includes("发票") || subject.includes("报销")) return "finance";
+    if (subject.includes("会议") || subject.includes("邀请")) return "calendar";
+    if (subject.includes("促销") || subject.includes("折扣")) return "promotion";
+    return "inbox";
+  }
+
+  summarize(text: string, style = "short"): string {
+    const sentences = text.split("。").filter(Boolean);
+    if (style === "short") return sentences.slice(0, 2).join("。") + "。";
+    return text.slice(0, 200) + "…";
+  }
+
+  shouldNotify(event: Record<string, any>): boolean {
+    const hour = parseInt(event.when.split(":")[0] ?? "9");
+    return hour >= 9 && hour <= 22;
+  }
+}
+
+// 使用示例
+const assistant = new PersonalAssistant({ name: "张三", habits: { work_start: "09:00" }, priorities: {} });
+console.log(assistant.addEvent("产品评审会", "2024-10-10 14:00"));
+console.log("邮件分类:", assistant.classifyEmail("发票报销通知", "请提交发票"));
+console.log("摘要:", assistant.summarize("今天是美好的一天。我们讨论了产品路线图。会议非常成功。大家一致同意下季度重点推进 Agent 场景落地。", "short"));</code></pre>
+
+        <h2>本章产出</h2>
+        <ul>
+          <li>个人助理 Agent 的核心能力矩阵（日程 / 邮件 / 摘要 / 提醒）。</li>
+          <li>主动 vs 被动触发的设计原则和免打扰策略。</li>
+          <li>最小可运行实现，展示习惯学习、邮件分类、摘要生成。</li>
+        </ul>
+
+        <div class="chapter__nav">
+          <a href="/chapters/chapter-17.html" class="chapter__nav-link">← 第 17 章</a>
+          <a href="/chapters/chapter-19.html" class="chapter__nav-link">第 19 章 Agent 之间的协议与标准 →</a>
+        </div>
+      </section>
+    </article>
+  </main>
+
+  <script src="/assets/js/main.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>第 11 章 安全、合规与治理 —— AI Agent 权威指南</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <meta name="description" content="Agent 安全体系：权限最小化、数据隐私、内容安全、合规上线。含 Agent 上线检查清单（Python + TypeScript）。">
+</head>
+<body>
+  <nav class="sidebar">
+    <div class="sidebar__brand">
+      <h2>AI Agent<br>权威指南</h2>
+      <span class="sidebar__version">v0.2 · 前 10 章</span>
+    </div>
+    <ul class="sidebar__nav">
+      <li><a href="/" class="nav-item">序章</a></li>
+      <li class="nav-section">Part 0 · 决策者视角</li>
+      <li><a href="/chapters/part-0.html" class="nav-item">Part 0 为什么需要了解 Agent</a></li>
+      <li class="nav-section">第一部分 · 基础</li>
+      <li><a href="/chapters/chapter-01.html" class="nav-item">第 1 章 什么是 AI Agent</a></li>
+      <li><a href="/chapters/chapter-02.html" class="nav-item">第 2 章 Agent 架构通用模式</a></li>
+      <li><a href="/chapters/chapter-03.html" class="nav-item">第 3 章 记忆系统</a></li>
+      <li><a href="/chapters/chapter-04.html" class="nav-item">第 4 章 工具使用与函数调用</a></li>
+      <li><a href="/chapters/chapter-05.html" class="nav-item">第 5 章 规划与推理</a></li>
+      <li class="nav-section">第二部分 · 核心模块</li>
+      <li><a href="/chapters/chapter-06.html" class="nav-item">第 6 章 多智能体协作</a></li>
+      <li><a href="/chapters/chapter-07.html" class="nav-item">第 7 章 人机交互界面</a></li>
+      <li><a href="/chapters/chapter-08.html" class="nav-item">第 8 章 提示工程（Prompt Engineering）的工程化</a></li>
+      <li><a href="/chapters/chapter-09.html" class="nav-item">第 9 章 Agent 评测与红线</a></li>
+      <li><a href="/chapters/chapter-10.html" class="nav-item">第 10 章 可观测性与调试</a></li>
+      <li><a href="/chapters/chapter-11.html" class="nav-item nav-item--active">第 11 章 安全、合规与治理</a></li>
+      <li class="nav-section">更多章节</li>
+      <li><span class="nav-item nav-item--disabled">第 12–21 章 · 连载中</span></li>
+    </ul>
+    <div class="sidebar__footer">
+      <a href="https://github.com/phoenix1983413/ai-agent-guide" target="_blank" rel="noopener">GitHub 仓库</a>
+    </div>
+  </nav>
+
+  <main class="content">
+    <article class="chapter">
+      <header class="chapter__header">
+        <span class="chapter__badge">第 11 章</span>
+        <h1 class="chapter__title">安全、合规与治理</h1>
+        <p class="chapter__subtitle">权限最小化 / 数据隐私 / 内容安全 / 合规上线</p>
+      </header>
+
+      <section class="chapter__body">
+        <h2>11.1 权限最小化：工具调用的能力边界</h2>
+        <p>Agent 能做的事取决于它被授予的工具权限。权限最小化原则：</p>
+        <ul>
+          <li>每个工具只给完成功能所必需的最小权限。例如「发邮件」工具只能发预定义模板邮件，不能发任意内容。</li>
+          <li>危险操作（删除、发送、支付）强制人工确认，Agent 只能「建议」不能「执行」。</li>
+          <li>工具之间权限隔离：读取用户数据的工具不能同时调用外部 API 发送数据。</li>
+        </ul>
+
+        <h2>11.2 数据隐私：PII 过滤、记忆隔离、GDPR / 个保法</h2>
+        <p>Agent 处理的对话可能包含身份证号、手机号、地址等 PII。必须：</p>
+        <ul>
+          <li><strong>PII 过滤</strong>：输入和输出都过一遍脱敏层，敏感字段替换为 `***`。</li>
+          <li><strong>记忆隔离</strong>：不同用户的记忆存在不同 namespace，禁止跨租户读取。</li>
+          <li><strong>删除权</strong>：用户要求删除时，能定位并删除该用户的所有记忆和日志。</li>
+          <li><strong>合规对齐</strong>：GDPR（欧盟）、个保法（中国）、HIPAA（医疗）等，根据业务属地选择适用法规。</li>
+        </ul>
+
+        <h2>11.3 内容安全：拒绝有害输出、审计不可抵赖</h2>
+        <p>Agent 可能被诱导生成有害内容，或被利用发起攻击。防线：</p>
+        <ol>
+          <li>输入层：敏感词过滤 + 意图识别。</li>
+          <li>模型层：使用带安全对齐的模型（如 GPT-4o、Claude 3），并设置 system prompt 约束。</li>
+          <li>输出层：分类器二次审核，高风险内容拦截。</li>
+          <li>审计层：所有工具调用和敏感输出留痕，不可删除、不可篡改。</li>
+        </ol>
+
+        <h2>11.4 合规上线：企业内部审批流程</h2>
+        <p>Agent 不是普通功能，上线前必须过安全评审。建议流程：</p>
+        <ul>
+          <li><strong>内部测试</strong>：研发团队内部使用 1–2 周，收集问题。</li>
+          <li><strong>安全评审</strong>：安全团队审查工具权限、数据流、PII 处理、审计日志。</li>
+          <li><strong>灰度发布</strong>：先开放给 5% 用户，监控错误率和异常行为。</li>
+          <li><strong>用户告知</strong>：明确告知用户在与 AI 交互，哪些数据会被记录。</li>
+          <li><strong>回滚预案</strong>：出问题能一键关闭 Agent 功能，不影响主系统。</li>
+        </ul>
+
+        <h2>本章产出：Agent 上线检查清单</h2>
+        <p>以下清单可以直接作为上线前的 Gate Check：</p>
+        <ul>
+          <li>□ 所有工具权限已最小化，危险操作有人工确认</li>
+          <li>□ PII 过滤层已覆盖输入和输出</li>
+          <li>□ 用户记忆已按 namespace 隔离</li>
+          <li>□ 审计日志已落地且不可篡改</li>
+          <li>□ 红队测试已完成，无高危漏洞</li>
+          <li>□ 回滚预案已演练</li>
+          <li>□ 用户告知文案已上线</li>
+        </ul>
+
+        <div class="chapter__nav">
+          <a href="/chapters/chapter-10.html" class="chapter__nav-link">← 第 10 章</a>
+          <a href="/chapters/chapter-12.html" class="chapter__nav-link">第 12 章 Agent 的自我进化 →</a>
+        </div>
+      </section>
+    </article>
+  </main>
+
+  <script src="/assets/js/main.js" defer></script>
+</body>
+</html>

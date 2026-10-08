@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>第 14 章 性能优化与成本控制 —— AI Agent 权威指南</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <meta name="description" content="Agent 性能优化：延迟优化、成本优化、负载均衡、边缘部署。含带成本仪表板的 Agent 运行时（Python + TypeScript）。">
+</head>
+<body>
+  <nav class="sidebar">
+    <div class="sidebar__brand">
+      <h2>AI Agent<br>权威指南</h2>
+      <span class="sidebar__version">v0.2 · 前 10 章</span>
+    </div>
+    <ul class="sidebar__nav">
+      <li><a href="/" class="nav-item">序章</a></li>
+      <li class="nav-section">Part 0 · 决策者视角</li>
+      <li><a href="/chapters/part-0.html" class="nav-item">Part 0 为什么需要了解 Agent</a></li>
+      <li class="nav-section">第一部分 · 基础</li>
+      <li><a href="/chapters/chapter-01.html" class="nav-item">第 1 章 什么是 AI Agent</a></li>
+      <li><a href="/chapters/chapter-02.html" class="nav-item">第 2 章 Agent 架构通用模式</a></li>
+      <li><a href="/chapters/chapter-03.html" class="nav-item">第 3 章 记忆系统</a></li>
+      <li><a href="/chapters/chapter-04.html" class="nav-item">第 4 章 工具使用与函数调用</a></li>
+      <li><a href="/chapters/chapter-05.html" class="nav-item">第 5 章 规划与推理</a></li>
+      <li class="nav-section">第二部分 · 核心模块</li>
+      <li><a href="/chapters/chapter-06.html" class="nav-item">第 6 章 多智能体协作</a></li>
+      <li><a href="/chapters/chapter-07.html" class="nav-item">第 7 章 人机交互界面</a></li>
+      <li><a href="/chapters/chapter-08.html" class="nav-item">第 8 章 提示工程（Prompt Engineering）的工程化</a></li>
+      <li><a href="/chapters/chapter-09.html" class="nav-item">第 9 章 Agent 评测与红线</a></li>
+      <li><a href="/chapters/chapter-10.html" class="nav-item">第 10 章 可观测性与调试</a></li>
+      <li><a href="/chapters/chapter-11.html" class="nav-item">第 11 章 安全、合规与治理</a></li>
+      <li><a href="/chapters/chapter-12.html" class="nav-item">第 12 章 Agent 的自我进化</a></li>
+      <li><a href="/chapters/chapter-13.html" class="nav-item">第 13 章 Agent 与外部系统集成</a></li>
+      <li><a href="/chapters/chapter-14.html" class="nav-item nav-item--active">第 14 章 性能优化与成本控制</a></li>
+      <li class="nav-section">更多章节</li>
+      <li><span class="nav-item nav-item--disabled">第 15–21 章 · 连载中</span></li>
+    </ul>
+    <div class="sidebar__footer">
+      <a href="https://github.com/phoenix1983413/ai-agent-guide" target="_blank" rel="noopener">GitHub 仓库</a>
+    </div>
+  </nav>
+
+  <main class="content">
+    <article class="chapter">
+      <header class="chapter__header">
+        <span class="chapter__badge">第 14 章</span>
+        <h1 class="chapter__title">性能优化与成本控制</h1>
+        <p class="chapter__subtitle">延迟优化 / 成本优化 / 负载均衡 / 边缘部署</p>
+      </header>
+
+      <section class="chapter__body">
+        <h2>14.1 延迟优化：流式输出、并行工具调用、缓存</h2>
+        <p>Agent 的端到端延迟主要消耗在 LLM 推理上。优化手段：</p>
+        <ul>
+          <li><strong>流式输出（Streaming）</strong>：不等完整响应，边生成边推送给用户。TTFB 从秒级降到百毫秒级。</li>
+          <li><strong>并行工具调用</strong>：多个独立工具同时执行，而非串行。如同时查用户信息和订单历史。</li>
+          <li><strong>缓存</strong>：相同 / 相似问题的回答缓存到 Redis，命中直接返回，跳过 LLM。缓存键用 embedding 相似度匹配。</li>
+        </ul>
+
+        <h2>14.2 成本优化：Prompt 压缩、模型路由</h2>
+        <p>LLM 成本是 Agent 运营的最大开销。两个最有效的策略：</p>
+        <ol>
+          <li><strong>Prompt 压缩</strong>：把长对话历史压缩成摘要，减少输入 token。如超过 20 轮，自动摘要前 15 轮。</li>
+          <li><strong>模型路由</strong>：大模型做决策、小模型做执行。如 GPT-4o 负责规划，GPT-4o-mini 负责简单工具调用，成本降 50%+。</li>
+        </ol>
+
+        <h2>14.3 负载均衡：多模型/多实例的热备与降级</h2>
+        <p>不要把 Agent 绑定到单一模型或单一实例：</p>
+        <ul>
+          <li><strong>多模型热备</strong>：主模型（如 GPT-4o）故障时自动切换到 Claude 3 / 国内模型。</li>
+          <li><strong>多实例部署</strong>：Agent 无状态化，水平扩展实例，前端做负载均衡。</li>
+          <li><strong>优雅降级</strong>：LLM 不可用时，切换到规则引擎或返回兜底话术。</li>
+        </ul>
+
+        <h2>14.4 边缘部署：端侧模型 + 云端大脑的混合架构</h2>
+        <p>对于低延迟、隐私敏感的场景，可以把部分推理放到端侧：</p>
+        <ul>
+          <li><strong>端侧模型</strong>：轻量模型（如 Phi-3 Mini、Qwen2.5-3B）处理简单意图识别、分类。</li>
+          <li><strong>云端大脑</strong>：复杂推理、长文本生成留在云端大模型。</li>
+          <li><strong>混合路由</strong>：端侧先判断任务难度，简单的本地处理，复杂的再上传云端。</li>
+        </ul>
+
+        <h2>本章产出：带成本仪表板的 Agent 运行时（双语言）</h2>
+        <p>下面是一个最小运行时，演示流式输出、并行工具调用、成本统计。</p>
+
+        <h3>Python 版本</h3>
+        <pre><code class="language-python">"""
+带成本仪表板的 Agent 运行时 —— Python
+"""
+from __future__ import annotations
+import time
+from dataclasses import dataclass, field
+from typing import Any, Callable, Awaitable
+
+@dataclass
+class CostMetrics:
+    total_tokens: int = 0
+    total_latency_ms: float = 0.0
+    tool_calls: int = 0
+    cache_hits: int = 0
+
+class AgentRuntime:
+    def __init__(self, model_cost_per_1k: float = 0.01):
+        self.model_cost = model_cost_per_1k
+        self.metrics = CostMetrics()
+        self.cache: dict[str, str] = {}
+        self.tools: dict[str, Callable] = {}
+
+    def register_tool(self, name: str, fn: Callable):
+        self.tools[name] = fn
+
+    async def run(self, user_input: str) -> dict:
+        # 1. 缓存检查
+        cache_key = hash(user_input)
+        if cache_key in self.cache:
+            self.metrics.cache_hits += 1
+            return {"text": self.cache[cache_key], "cached": True}
+
+        # 2. 模拟 LLM 决策（实际接 OpenAI / Anthropic）
+        start = time.time()
+        # 3. 并行工具调用（简化）
+        results = {}
+        if "搜索" in user_input or "search" in user_input.lower():
+            results["search"] = self.tools.get("search", lambda x: x)("query")
+        if "计算" in user_input or "calc" in user_input.lower():
+            results["calc"] = self.tools.get("calc", lambda x: x)("1+1")
+        self.metrics.tool_calls += len(results)
+
+        # 4. 生成最终答案
+        answer = f"基于 {', '.join(results.keys()) or '知识'} 的回答：{user_input}"
+        latency = (time.time() - start) * 1000
+        self.metrics.total_latency_ms += latency
+        self.metrics.total_tokens += len(user_input.split()) + len(answer.split())
+        self.cache[cache_key] = answer
+        return {"text": answer, "cached": False, "tools_used": list(results.keys())}
+
+    def cost_report(self) -> dict:
+        cost = self.metrics.total_tokens / 1000 * self.model_cost
+        return {
+            "total_tokens": self.metrics.total_tokens,
+            "tool_calls": self.metrics.tool_calls,
+            "cache_hits": self.metrics.cache_hits,
+            "estimated_cost_usd": round(cost, 4),
+        }
+
+# 使用示例
+async def main():
+    runtime = AgentRuntime()
+    runtime.register_tool("search", lambda q: f"结果: {q}")
+    runtime.register_tool("calc", lambda e: str(eval(e)))
+    r1 = await runtime.run("搜索一下 AI Agent 最新进展")
+    r2 = await runtime.run("搜索一下 AI Agent 最新进展")  # 缓存命中
+    print("结果1:", r1["text"][:50])
+    print("结果2(缓存):", r2["cached"])
+    print("成本:", runtime.cost_report())
+
+if __name__ == "__main__":
+    import asyncio
+    asyncio.run(main())</code></pre>
+
+        <h3>TypeScript 版本</h3>
+        <pre><code class="language-typescript">/**
+带成本仪表板的 Agent 运行时 —— TypeScript
+*/
+interface CostMetrics {
+  totalTokens: number;
+  totalLatencyMs: number;
+  toolCalls: number;
+  cacheHits: number;
+}
+
+class AgentRuntime {
+  private cache = new Map<string, string>();
+  private tools = new Map<string, (input: string) => string>();
+  public metrics: CostMetrics = { totalTokens: 0, totalLatencyMs: 0, toolCalls: 0, cacheHits: 0 };
+  private modelCostPer1k: number;
+
+  constructor(modelCostPer1k = 0.01) { this.modelCostPer1k = modelCostPer1k; }
+
+  registerTool(name: string, fn: (input: string) => string) { this.tools.set(name, fn); }
+
+  async run(userInput: string): Promise<Record<string, any>> {
+    const cacheKey = String(hashCode(userInput));
+    if (this.cache.has(cacheKey)) {
+      this.metrics.cacheHits++;
+      return { text: this.cache.get(cacheKey), cached: true };
+    }
+    const start = Date.now();
+    const results: Record<string, string> = {};
+    if (/搜索|search/i.test(userInput)) results.search = this.tools.get("search")?.(userInput) ?? "";
+    if (/计算|calc/i.test(userInput)) results.calc = this.tools.get("calc")?.("1+1") ?? "";
+    this.metrics.toolCalls += Object.keys(results).length;
+    const answer = `基于 ${Object.keys(results).join(",") || "知识"} 的回答：${userInput}`;
+    const latency = Date.now() - start;
+    this.metrics.totalLatencyMs += latency;
+    this.metrics.totalTokens += userInput.split(/\s+/).length + answer.split(/\s+/).length;
+    this.cache.set(cacheKey, answer);
+    return { text: answer, cached: false, toolsUsed: Object.keys(results) };
+  }
+
+  costReport(): Record<string, number> {
+    const cost = (this.metrics.totalTokens / 1000) * this.modelCostPer1k;
+    return { ...this.metrics, estimatedCostUsd: Number(cost.toFixed(4)) };
+  }
+}
+
+function hashCode(s: string): number {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (Math.imul(31, h) + s.charCodeAt(i)) | 0;
+  return h;
+}
+
+// 使用示例
+(async () => {
+  const runtime = new AgentRuntime();
+  runtime.registerTool("search", q => `结果: ${q}`);
+  runtime.registerTool("calc", e => String(eval(e)));
+  const r1 = await runtime.run("搜索一下 AI Agent 最新进展");
+  const r2 = await runtime.run("搜索一下 AI Agent 最新进展");
+  console.log("结果1:", (r1.text as string).slice(0, 50));
+  console.log("结果2(缓存):", r2.cached);
+  console.log("成本:", runtime.costReport());
+})();</code></pre>
+
+        <h2>本章产出</h2>
+        <ul>
+          <li>Agent 延迟优化的三层手段（流式 / 并行 / 缓存）。</li>
+          <li>成本优化的两个杠杆（prompt 压缩 + 模型路由）。</li>
+          <li>带成本仪表板的 Agent 运行时，可统计 token、调用次数、缓存命中率、估算费用。</li>
+        </ul>
+
+        <div class="chapter__nav">
+          <a href="/chapters/chapter-13.html" class="chapter__nav-link">← 第 13 章</a>
+          <a href="/chapters/chapter-15.html" class="chapter__nav-link">第 15 章 场景一：研发助手（代码级 Agent） →</a>
+        </div>
+      </section>
+    </article>
+  </main>
+
+  <script src="/assets/js/main.js" defer></script>
+</body>
+</html>
