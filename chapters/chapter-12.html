@@ -12,7 +12,7 @@
   <nav class="sidebar">
     <div class="sidebar__brand">
       <h2>AI Agent<br>权威指南</h2>
-      <span class="sidebar__version">v1.0 · 全 21 章</span>
+      <span class="sidebar__version">v1.1 · 内容升级</span>
     </div>
         <ul class="sidebar__nav">
       <li><a href="./" class="nav-item">序章</a></li>
@@ -64,6 +64,16 @@
       </header>
 
       <section class="chapter__body">
+        <div class="goals">
+          <p>学习目标</p>
+          <ul>
+            <li>区分 RLHF、经验蒸馏、知识蒸馏三条进化路线的适用场景</li>
+            <li>设计「Agent 可自己改」与「必须人工评审」的边界</li>
+            <li>为冻结参数的知识建立保鲜机制</li>
+          </ul>
+          <p><strong>章节地图</strong>：12.1 RLHF → 12.2 经验蒸馏 → 12.3 记忆整理 → 12.4 演化边界 → 12.5 持续学习与知识更新 → 本章产出。</p>
+        </div>
+
         <h2>12.1 从反馈中学习：RLHF 在 Agent 中的应用</h2>
         <p>RLHF（人类反馈强化学习）在 Agent 中的落地比在 Chatbot 中更复杂，因为 Agent 的动作空间是工具调用序列，不是单一文本。两种适配思路：</p>
         <ul>
@@ -103,7 +113,31 @@
           </tbody>
         </table>
 
-        <h2>本章产出：带反馈闭环的 Agent 自迭代框架（双语言）</h2>
+                <h2>12.5 持续学习与知识更新</h2>
+        <p>模型参数是冻结的，世界却在持续变化。Agent 的「持续学习」分两条腿：<strong>经验腿</strong>（前几节的蒸馏与反思）和<strong>知识腿</strong>（本节）。知识腿解决「新事件、新数据、新政策进来后，Agent 怎么知道」。</p>
+        <table class="table">
+          <thead>
+            <tr><th>更新方式</th><th>时效</th><th>成本</th><th>适用</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>检索式更新</td><td>分钟级（入库即可用）</td><td>低</td><td>绝大多数事实性知识：文档、公告、价格</td></tr>
+            <tr><td>提示词更新</td><td>小时级（需回归测试）</td><td>低</td><td>行为规则、话术、流程变化</td></tr>
+            <tr><td>微调更新</td><td>天级（数据 + 训练 + 评测）</td><td>高</td><td>稳定的风格与格式偏好，不存易变事实</td></tr>
+          </tbody>
+        </table>
+        <p>三条铁律：① <strong>易变事实永远走检索，不走微调</strong>——微调进去的知识无法低成本删除， model 会固执地「记得」过期的价格；② 知识要带<strong>生效日期</strong>，检索时按时间窗口过滤，防止 Agent 引用去年政策回答今年问题；③ 更新链路本身要评测——新知识入库后，用「新旧知识冲突」的问题做回归，确保 Agent 用新的不用旧的。</p>
+        <p>数据飞轮的伦理边界：用户交互数据用于改进系统时，要走 11.2 节的脱敏与授权；「用用户数据炼出的能力服务其他用户」必须有明确协议，这不是技术问题是信任问题。</p>
+
+        <div class="experiment">
+          <p>动手实验</p>
+          <ol>
+            <li>列出你的 Agent 依赖的 TOP10 易变事实（价格、政策、联系人），逐个标注更新方式和负责人。</li>
+            <li>给你的知识库加「生效日期」字段，构造三条「新旧知识冲突」的回归问题。</li>
+            <li>检查经验库（12.2）里的教训：哪几条其实已经过时了？给经验也加上保质期。</li>
+          </ol>
+        </div>
+
+<h2>本章产出：带反馈闭环的 Agent 自迭代框架（双语言）</h2>
 
         <h3>Python 版本</h3>
         <pre><code class="language-python">"""

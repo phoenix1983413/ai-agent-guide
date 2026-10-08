@@ -397,3 +397,28 @@ pre code {
   .content { margin-left: 0; padding: 24px 20px 60px; }
   .chapter__title { font-size: 26px; }
 }
+
+/* ============================================================
+   学习目标 / 章节地图 / 动手实验 内容块
+   ============================================================ */
+.chapter__body .goals,
+.chapter__body .experiment {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin: 20px 0;
+}
+.chapter__body .goals p:first-child,
+.chapter__body .experiment p:first-child {
+  color: var(--accent);
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.chapter__body .goals ul,
+.chapter__body .experiment ol { margin: 0; padding-left: 20px; }
+.chapter__body .goals li,
+.chapter__body .experiment li { margin: 4px 0; color: var(--text-dim); }
+.chapter__body .goals li:last-child,
+.chapter__body .experiment li:last-child { margin-bottom: 0; }

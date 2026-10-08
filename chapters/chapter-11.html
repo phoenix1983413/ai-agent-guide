@@ -12,7 +12,7 @@
   <nav class="sidebar">
     <div class="sidebar__brand">
       <h2>AI Agent<br>权威指南</h2>
-      <span class="sidebar__version">v1.0 · 全 21 章</span>
+      <span class="sidebar__version">v1.1 · 内容升级</span>
     </div>
     <ul class="sidebar__nav">
       <li><a href="./" class="nav-item">序章</a></li>
@@ -65,6 +65,16 @@
 
       <section class="chapter__body">
         <p>Agent 和传统软件最大的区别是：<strong>它会自己做决定、自己调工具、自己写内容</strong>。传统应用把风险关在代码逻辑里，Agent 把风险摊到了每一次模型推理上。这一章把安全从「上线前评审」变成「运行时每一层都在编译」的工程体系。</p>
+
+        <div class="goals">
+          <p>学习目标</p>
+          <ul>
+            <li>按 danger_level 设计工具权限，掌握哈希链审计的做法</li>
+            <li>枚举 Agent 的典型故障模式，并为每个配上韧性设计</li>
+            <li>把合规审批变成上线门禁，而不是事后补材料</li>
+          </ul>
+          <p><strong>章节地图</strong>：11.1 权限最小化 → 11.2 数据隐私 → 11.3 内容安全 → 11.4 合规上线 → 11.5 故障模式与韧性 → 11.6 对齐审查 → 本章产出。</p>
+        </div>
 
         <h2>11.1 权限最小化：工具调用的能力边界</h2>
         <p>Agent 能做什么，不取决于 prompt 怎么写，而取决于运行时它手里有什么工具、每个工具以什么身份执行。核心原则：</p>
@@ -386,7 +396,40 @@ export function tenantFilter(tenantId: string) {
           <li><strong>回滚预案</strong>：保留一键降级开关——Agent 不可用时，业务能退回原人工 / 规则流程。</li>
         </ol>
 
-        <h2>本章产出：上线 Gate Check 清单（可执行）</h2>
+                <h2>11.5 故障模式与韧性设计</h2>
+        <p>Agent 的故障和传统软件不同：它不是「崩掉」，而是<strong>安静地走向错误</strong>。按出现频率排列的五种典型模式，每一种都有对应的韧性设计：</p>
+        <table class="table">
+          <thead>
+            <tr><th>故障模式</th><th>表象</th><th>根因</th><th>韧性设计</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>无限循环</td><td>两个步骤间来回，token 持续燃烧</td><td>计划无进展、评估器失效</td><td>步数硬上限 + 循环检测（同对步骤出现 3 次即熔断）</td></tr>
+            <tr><td>幻觉工具调用</td><td>调用不存在的工具 / 参数</td><td>Schema 不完整、上下文超载</td><td>调用前 Schema 校验，失败回填错误而非静默忽略</td></tr>
+            <tr><td>静默失败</td><td>宣布「已完成」但结果错了</td><td>缺少执行后验证</td><td>关键动作加后置断言（查询生效、文件存在）</td></tr>
+            <tr><td>错误级联</td><td>早期小错被后续步骤放大</td><td>无中间检查点</td><td>检查点 + 每 N 步重放早期目标做对齐检查</td></tr>
+            <tr><td>资源耗尽</td><td>单任务吃掉全天预算</td><td>无预算约束</td><td>单任务 token / 时间 / 金额三重熔断</td></tr>
+          </tbody>
+        </table>
+        <p>韧性设计的统一心法：<strong>把「Agent 会失败」当默认前提来设计系统，而不是当异常。</strong>熔断、降级、幂等、检查点这四个传统分布式概念，在 Agent 系统里一个都不能少——只是触发条件从「网络错误」扩展到「语义错误」。</p>
+
+        <h2>11.6 对齐审查与长期外部性</h2>
+        <p>除了合规审批（11.4），两类问题要在设计期就纳入审查，它们不会在测试中暴露：</p>
+        <ul>
+          <li><strong>目标错位</strong>：Agent  optimizing 的指标与用户真实利益不一致——客服 Agent 把「快速结束对话」当成了目标，于是敷衍用户。审查方式：读指标定义，问「这个指标最省力的达成方式是否伤害用户」。</li>
+          <li><strong>长期外部性</strong>：单次无害，规模化后有害——100 万个 Agent 同时抓取某个网站、同质化内容淹没信息生态。审查方式：估算规模化后的资源占用与外部影响，写进上线评审材料。</li>
+        </ul>
+        <p>审查输出物很简单：一页「已知风险与缓解措施」表，随版本更新。它不阻止上线，它保证<strong>出问题时，团队知道自己在赌什么</strong>。</p>
+
+        <div class="experiment">
+          <p>动手实验</p>
+          <ol>
+            <li>对照 11.5 节表格，给你的系统做「故障演练」：人为注入一次工具超时、一次参数错误，观察系统反应是否符合韧性设计。</li>
+            <li>检查你的 Agent 有没有「静默失败」：故意让它执行一个必然失败的动作，看它是否如实报告。</li>
+            <li>写你系统的「已知风险与缓解措施」一页纸，找一位非项目同事挑战里面的假设。</li>
+          </ol>
+        </div>
+
+<h2>本章产出：上线 Gate Check 清单（可执行）</h2>
         <p>把清单固化成 CI 的一等公民，任何一项红灯即阻断发布：</p>
         <pre><code class="language-python">"""
 Agent 上线 Gate Check —— Python

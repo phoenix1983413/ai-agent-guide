@@ -12,7 +12,7 @@
   <nav class="sidebar">
     <div class="sidebar__brand">
       <h2>AI Agent<br>权威指南</h2>
-      <span class="sidebar__version">v1.0 · 全 21 章</span>
+      <span class="sidebar__version">v1.1 · 内容升级</span>
     </div>
         <ul class="sidebar__nav">
       <li><a href="./" class="nav-item">序章</a></li>
@@ -64,6 +64,16 @@
       </header>
 
       <section class="chapter__body">
+        <div class="goals">
+          <p>学习目标</p>
+          <ul>
+            <li>理解 Agentic Coding 的四级范式与自主代理的工作循环</li>
+            <li>为 Coding Agent 设计「测试即验证器」的闭环</li>
+            <li>区分 Coding Agent 与通用 Agent 的能力分工</li>
+          </ul>
+          <p><strong>章节地图</strong>：15.1 需求 → 15.2 工具 → 15.3 记忆 → 15.4 安全 → 15.5 Agentic Coding 范式 → 15.6 代码作为工具 → 本章产出。</p>
+        </div>
+
         <h2>15.1 需求：阅读代码库、定位 bug、生成 PR</h2>
         <p>研发助手是最典型的 Agent 落地场景。用户自然语言需求如：</p>
         <ul>
@@ -99,7 +109,45 @@
           <li><strong>审计</strong>：所有文件修改记录 diff，与 Git commit 绑定，可追溯。</li>
         </ul>
 
-        <h2>本章产出：研发助手的工具注册表与权限控制器（双语言）</h2>
+                <h2>15.5 Agentic Coding：从补全到自主代理</h2>
+        <p>研发助手是 Agent 落地最深的场景，它的演进路径几乎就是「人机协作自主度」的完整光谱：</p>
+        <table class="table">
+          <thead>
+            <tr><th>范式</th><th>交互</th><th>人的角色</th><th>代表</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>L1 代码补全</td><td>Tab 补全一行</td><td>驾驶员</td><td>GitHub Copilot 补全</td></tr>
+            <tr><td>L2 对话式编程</td><td>问答 + 生成函数</td><td>审查者</td><td>ChatGPT / Copilot Chat</td></tr>
+            <tr><td>L3 任务代理</td><td>「修复这个 issue」，Agent 读代码、改文件、跑测试、提 PR</td><td>验收者</td><td>Claude Code / Devin / Cursor Agent</td></tr>
+            <tr><td>L4 多代理研发</td><td>角色分工：架构 / 编码 / 测试 / 评审</td><td>技术负责人</td><td>实验阶段</td></tr>
+          </tbody>
+        </table>
+        <p>L3 的工作循环本质上是第 5 章 ReAct 的领域化：<strong>读代码（观察）→ 形成假设（思考）→ 编辑（行动）→ 跑测试（验证）→ 看报错（新观察）</strong>。与通用 Agent 相比，Coding Agent 有一个决定性优势：<strong>验证器是现成的</strong>——编译器、测试、linter 都是确定性裁判。这解释了为什么编程是 Agent 最早成功的领域：不是模型更懂代码，是这个领域的「对错」可以被便宜地判定。</p>
+        <p>三个工程要点：① <strong>上下文选择决定上限</strong>——相关的文件和符号找齐了，任务就成了一半；② <strong>小步提交</strong>——每步改动可独立回滚，避免一次改错十处；③ <strong>diff 审查必须留给人的最终确认</strong>，PR 描述要写清「改了什么、为什么、影响哪些测试」。</p>
+
+        <h2>15.6 Coding Agent 与通用 Agent：代码作为工具</h2>
+        <p>第二本书的视角很犀利：<strong>代码是 Agent 的「元工具」</strong>——一个通用 Agent 如果会写代码并执行，它就能在运行时「发明」新工具，动作空间不再受预定义注册表限制。</p>
+        <table class="table">
+          <thead>
+            <tr><th>形态</th><th>动作空间来源</th><th>优势</th><th>风险</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>预定义工具</td><td>注册表里的固定 API</td><td>可控、可审计</td><td>覆盖长尾任务能力有限</td></tr>
+            <tr><td>Coding Agent（代码即工具）</td><td>动态生成并执行脚本</td><td>能力上限 = 代码的表达力</td><td>执行安全、幻觉代码、审计难度</td></tr>
+          </tbody>
+        </table>
+        <p>工程取舍：<strong>「预定义工具处理 90% 高频请求 + 代码执行兜底长尾」</strong>是最稳的混合架构。代码执行必须配 13.3 节的沙箱、超时和资源限额，产物要留档可审计。通用 Agent 产品（如 Manus）正是靠「虚拟机 + 文件系统 + 代码执行」三件套，把 Deep Research、Coding、Computer Use 三条路线的能力并集装进一个产品的。</p>
+
+        <div class="experiment">
+          <p>动手实验</p>
+          <ol>
+            <li>用 15.5 节表格给你团队的工具定位：现在处在 L1–L4 哪一级？下一步升一级的前提条件是什么？</li>
+            <li>给你的 Coding Agent 写一个「测试即验证器」的最小闭环：改完自动跑测试，失败把报错摘要回填给 Agent。</li>
+            <li>设计「预定义工具 + 代码兜底」的混合架构：列出 5 个高频预定义工具，其余交给沙箱代码执行。</li>
+          </ol>
+        </div>
+
+<h2>本章产出：研发助手的工具注册表与权限控制器（双语言）</h2>
         <p>以下示例展示研发助手的核心工具注册和只读/写权限检查。</p>
 
         <h3>Python 版本</h3>

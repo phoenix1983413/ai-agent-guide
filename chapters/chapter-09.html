@@ -12,7 +12,7 @@
   <nav class="sidebar">
     <div class="sidebar__brand">
       <h2>AI Agent<br>权威指南</h2>
-      <span class="sidebar__version">v1.0 · 全 21 章</span>
+      <span class="sidebar__version">v1.1 · 内容升级</span>
     </div>
         <ul class="sidebar__nav">
       <li><a href="./" class="nav-item">序章</a></li>
@@ -64,6 +64,16 @@
       </header>
 
       <section class="chapter__body">
+        <div class="goals">
+          <p>学习目标</p>
+          <ul>
+            <li>建立功能 / 质量 / 成本三维评测体系，定义各维红线</li>
+            <li>看懂主流 Agent 基准测试的口径与适用范围</li>
+            <li>设计线上守护指标，让「变差」在伤害用户前被发现</li>
+          </ul>
+          <p><strong>章节地图</strong>：9.1 功能评测 → 9.2 质量评测 → 9.3 成本评测 → 9.4 红队 → 9.5 持续监控 → 9.6 主流基准 → 9.7 线上守护 → 本章产出。</p>
+        </div>
+
         <h2>9.1 功能评测：任务完成率、步骤数、耗时</h2>
         <p>功能评测回答「Agent 能不能完成用户交给它的任务」。核心指标：</p>
         <ul>
@@ -105,7 +115,48 @@
           <li><strong>成本异常</strong>：单任务 token 消耗突然翻倍，说明可能进入了死循环或重复调用。</li>
         </ul>
 
-        <h2>本章产出：开箱即用的 Agent 评测框架（双语言）</h2>
+                <h2>9.6 主流基准测试：AgentBench 与它的邻居们</h2>
+        <p>公开基准用于「选型参考」，自建评测集才是「上线依据」。看懂基准的口径，能避免被营销数字误导：</p>
+        <table class="table">
+          <thead>
+            <tr><th>基准</th><th>测什么</th><th>指标口径</th><th>注意点</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>AgentBench</td><td>通用 Agent 综合能力（OS/数据库/知识卡片等 8 类环境）</td><td>任务完成率， overall score</td><td>环境是沙箱，与真实工作流有差距</td></tr>
+            <tr><td>SWE-bench</td><td>真实 GitHub issue 修复</td><td>测试通过率（resolved）</td><td>Coding Agent 的行业标尺；选子集对照</td></tr>
+            <tr><td>WebArena / Mind2Web</td><td>浏览器任务操作</td><td>步骤级 / 任务级成功率</td><td>WebArena 可复现，Mind2Web 更接近真实网站</td></tr>
+            <tr><td>GAIA</td><td>需要多步工具使用的通用助理问题</td><td>准确率，按难度分级</td><td>对人类简单对模型难，适合测「助理」形态</td></tr>
+            <tr><td>τ-bench（tau-bench）</td><td>工具-用户-领域策略三方交互</td><td>pass^k（k 次全对的概率）</td><td>关注稳定性而非单次运气</td></tr>
+          </tbody>
+        </table>
+        <p>使用姿势：<strong>用基准做粗筛（选模型/框架），用自建集做精判（能否上线）。</strong>自建集从哪来？上线后把「用户不满意的 case」和「人工修正的 case」持续沉淀——这是唯一带你的业务基因的评测集。</p>
+
+        <h2>9.7 线上守护指标：让变差在伤害用户前暴露</h2>
+        <p>离线评测通过不等于线上健康。上线后按天盯这五类指标，任一类连续两天越界即触发回滚评估：</p>
+        <table class="table">
+          <thead>
+            <tr><th>指标</th><th>健康信号</th><th>越界动作</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>任务完成率</td><td>波动在基线 ±5% 内</td><td>回滚到上一版本提示词 / 模型</td></tr>
+            <tr><td>人工接管率</td><td>平稳或下降</td><td>接管率突增 = 某类任务开始系统性失败</td></tr>
+            <tr><td>平均步数 / 轮次</td><td>平稳</td><td>步数上涨常是「在原地打转」的前兆</td></tr>
+            <tr><td>单任务成本</td><td>在预算带内</td><td>超支先限流，再优化 prompt</td></tr>
+            <tr><td>用户修正率</td><td>用户改Agent 结果的比例</td><td>最直接的「不好用」信号</td></tr>
+          </tbody>
+        </table>
+        <p>与 9.5 节的分工：9.5 是「发现异常」，本节是「定义什么叫异常」。两条都要有自动告警，且告警要能定位到提示词版本和模型版本——没有版本对齐的告警等于没告警。</p>
+
+        <div class="experiment">
+          <p>动手实验</p>
+          <ol>
+            <li>对照 9.6 节表格，选出与你场景最接近的两个基准，跑一遍你现在的模型，记录与官方数字的差距及原因。</li>
+            <li>把你的「不满意 case」整理成 20 条评测集，定义三条：输入、期望行为、评分方式。</li>
+            <li>给 9.7 节五个指标各设一个你系统的基线值和告警阈值，写成配置。</li>
+          </ol>
+        </div>
+
+<h2>本章产出：开箱即用的 Agent 评测框架（双语言）</h2>
         <p>以下框架提供 EvalCase 数据结构、批量运行器、指标聚合器。接入真实 LLM 和工具即可跑。</p>
 
         <h3>Python 版本</h3>

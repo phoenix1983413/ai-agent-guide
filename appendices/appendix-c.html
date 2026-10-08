@@ -12,7 +12,7 @@
   <nav class="sidebar">
     <div class="sidebar__brand">
       <h2>AI Agent<br>权威指南</h2>
-      <span class="sidebar__version">v1.0 · 全 21 章</span>
+      <span class="sidebar__version">v1.1 · 内容升级</span>
     </div>
     <ul class="sidebar__nav">
       <li><a href="./" class="nav-item">序章</a></li>
@@ -149,7 +149,31 @@
           </tbody>
         </table>
 
-        <h2>本章产出</h2>
+                <h2>六、进阶视角术语</h2>
+        <p>以下术语来自本书参考的两本进阶读物与最新工程实践，是日常技术讨论中的高频词：</p>
+        <table class="table">
+          <thead>
+            <tr><th>术语</th><th>释义</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Harness（驾驭层）</td><td>环绕模型的运行与治理层：构造上下文、暴露工具、维护循环、实施验证。_model 换大脑，_ Harness 定边界</td></tr>
+            <tr><td>观察空间 / 动作空间</td><td>Agent 能看到的信息范围与能执行的操作范围；模型固定时，扩展两者是提升能力的主要工程手段</td></tr>
+            <tr><td>上下文工程（Context Engineering）</td><td>对每一轮进入模型窗口的信息做写入、选择、压缩、隔离的系统工程</td></tr>
+            <tr><td>Reflexion（反思）</td><td>行动 → 评估 → 语言化反思 → 改进的循环，把失败转成可执行教训</td></tr>
+            <tr><td>Spotlighting（聚光）</td><td>用分隔符包裹、数据标记等手段把不可信内容与指令物理隔离，防间接注入</td></tr>
+            <tr><td>Agentic RAG</td><td>把检索当作 Agent 的工具，多跳查询、检索后反思、按需补充证据</td></tr>
+            <tr><td>GraphRAG</td><td>用知识图谱组织知识，支持多跳关系推理与社区级全局摘要</td></tr>
+            <tr><td>社会模拟（Social Simulation）</td><td>让多个有人设的智能体在虚拟环境中生活互动，观察涌现行为</td></tr>
+            <tr><td>涌现（Emergence）</td><td>个体规则简单、群体行为复杂的现象；多 Agent 设计的收益来源与风险同源</td></tr>
+            <tr><td>AgentBench</td><td>通用 Agent 综合能力基准，覆盖 8 类沙箱环境的任务完成率评测</td></tr>
+            <tr><td>Agent Skill</td><td>自包含的能力包：SKILL.md 说明书 + 脚本 + 资源，支持渐进式披露加载</td></tr>
+            <tr><td>Computer Use</td><td>Agent 像人一样看屏幕、点鼠标键盘，操作没有 API 的遗留系统</td></tr>
+            <tr><td>最简形态原则</td><td>能用 if/else 不调模型，能一次调用不循环，能循环不上多 Agent</td></tr>
+            <tr><td>数据飞轮</td><td>用户交互数据 → 改进系统 → 更好体验 → 更多数据的闭环；须过脱敏与授权</td></tr>
+          </tbody>
+        </table>
+
+<h2>本章产出</h2>
         <ul>
           <li>45 条核心术语，按五组分类，覆盖架构、推理、安全、协议。</li>
           <li>每条术语给出「一句话定义 + 书中对应章节」的索引价值，可当速查手册用。</li>

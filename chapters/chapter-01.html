@@ -12,7 +12,7 @@
   <nav class="sidebar">
     <div class="sidebar__brand">
       <h2>AI Agent<br>权威指南</h2>
-      <span class="sidebar__version">v1.0 · 全 21 章</span>
+      <span class="sidebar__version">v1.1 · 内容升级</span>
     </div>
         <ul class="sidebar__nav">
       <li><a href="./" class="nav-item">序章</a></li>
@@ -64,6 +64,16 @@
       </header>
 
       <section class="chapter__body">
+        <div class="goals">
+          <p>学习目标</p>
+          <ul>
+            <li>说清 Agent 与 Chatbot、Copilot、Workflow 的本质区别</li>
+            <li>建立「大脑 + 眼睛 + 手脚」的心智模型与 Model–Harness 内部结构</li>
+            <li>能用观察空间 / 动作空间的视角，判断一个任务卡在哪一层</li>
+          </ul>
+          <p><strong>章节地图</strong>：1.1 定义 → 1.2 与近亲形态对比 → 1.3 自主性权衡 → 1.4 分层能力 → 1.5 认知层级 → 1.6 观察与动作空间 → 1.7 Model–Harness → 本章产出。</p>
+        </div>
+
         <h2>1.1 Agent 的定义：感知 → 决策 → 行动 → 反思的闭环</h2>
         <p>一个 AI Agent 至少包含四个环节：</p>
         <ul>
@@ -134,7 +144,66 @@
           <li><strong>L3 多智能体协作</strong>：多个 Agent 分工协作、共享记忆、协商决策。适合超复杂场景，也是成本最高的。</li>
         </ul>
 
-        <h2>本章产出：最小 ReAct Agent（100 行）</h2>
+                <h2>1.5 认知层级：从反射动作到通用智能</h2>
+        <p>1.4 节的功能分层回答「Agent 会做什么」；认知层级回答「Agent 能自己做多少主」。两级视角配合使用：功能分层选技术栈，认知层级定自主度边界。</p>
+        <table class="table">
+          <thead>
+            <tr><th>层级</th><th>决策来源</th><th>典型系统</th><th>失效模式</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>L1 反射式</td><td>输入直接映射动作，无状态</td><td>规则引擎、正则、热键脚本</td><td>遇到未覆盖输入即失效</td></tr>
+            <tr><td>L2 目标驱动</td><td>人预定义流程，系统按条件执行</td><td>Workflow、状态机、DAG 编排</td><td>流程外场景无法处理</td></tr>
+            <tr><td>L3 规划执行</td><td>模型自行拆解目标、调用工具、调整计划</td><td>ReAct、Plan-and-Execute</td><td>计划漂移、工具误用</td></tr>
+            <tr><td>L4 反思修正</td><td>模型评估自身输出并迭代</td><td>Reflexion、Self-Refine</td><td>反思死循环、虚假信心</td></tr>
+            <tr><td>L5 群体协作</td><td>多角色分工、动态组队、冲突仲裁</td><td>Multi-Agent 编排</td><td>协调成本吞掉收益</td></tr>
+          </tbody>
+        </table>
+        <p><strong>工程结论</strong>：自主度每升一级，不确定性和调试成本同步上升。给 Agent 的自主度应该「贴着任务需求的最低值」——这正是 1.3 节「自主性 vs 可控性」的量化落地方式。</p>
+
+        <h2>1.6 观察空间与动作空间：接口决定能力上限</h2>
+        <p>这是理解 Agent 工程最重要的视角之一：<strong>在底层模型固定时，提升任务表现最主要的系统工程手段，就是重新定义或扩展观察空间与动作空间。</strong>很多看起来「需要更聪明模型」的问题，其实是接口问题——任务所需的数据没有进入上下文，或完成任务所需的操作没有封装成工具。</p>
+        <ul>
+          <li><strong>观察空间</strong>（上下文）：环境返回的观察、历史、记忆、检索结果。没有进入上下文的信息，对模型相当于不存在。</li>
+          <li><strong>动作空间</strong>（工具）：模型可调用的操作集合。没被动作接口允许的操作，模型即使「知道怎么做」也只能停留在文字建议上。</li>
+        </ul>
+        <table class="table">
+          <thead>
+            <tr><th>产品路线</th><th>扩展的观察空间</th><th>扩展的动作空间</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Deep Research（深度调研）</td><td>搜索结果、网页正文、引用来源</td><td>多轮检索、笔记记录</td></tr>
+            <tr><td>Coding Agent</td><td>代码库、报错、终端输出</td><td>文件读写、命令执行、测试运行</td></tr>
+            <tr><td>Computer Use</td><td>屏幕截图、DOM 快照</td><td>鼠标、键盘、浏览器控制</td></tr>
+            <tr><td>通用 Agent（如 Manus）</td><td>以上三者的并集 + 文件系统</td><td>以上三者的并集 + 代码执行</td></tr>
+          </tbody>
+        </table>
+        <p>通用 Agent 的突破并不来自「换了一个更强的模型」，而是取了三条路线的观察/动作空间<strong>并集</strong>——这是接口扩展驱动能力跃迁的最好证明。</p>
+
+        <h2>1.7 Model–Harness：Agent 的内部解剖</h2>
+        <p>把 Agent 打开，里面是两层结构：<strong>Model</strong> 负责策略决策（想做什么）；<strong>Harness</strong> 是环绕模型的运行与治理层，负责让决策真正落地。</p>
+        <table class="table">
+          <thead>
+            <tr><th>Harness 职责</th><th>具体工作</th><th>对应章节</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>构造上下文</td><td>把观察、记忆、检索结果组织成模型输入</td><td>第 3 章</td></tr>
+            <tr><td>暴露工具接口</td><td>工具注册、Schema 生成、调用分发、结果回填</td><td>第 4 章</td></tr>
+            <tr><td>维护循环与状态</td><td>ReAct 循环、计划状态、中断恢复、超时控制</td><td>第 2、5 章</td></tr>
+            <tr><td>安全与纠正</td><td>权限校验、动作验证、失败重试、人工接管</td><td>第 10、11 章</td></tr>
+          </tbody>
+        </table>
+        <p>工程公式可以按此展开：<code>Agent = Model + Harness</code>；最小 Harness = 上下文 + 工具；生产级 Harness 再加约束、验证与纠正。<strong>换模型只换了「大脑」，Harness 决定了「大脑」能看到什么、能做什么、做错了谁兜底</strong>——这是本书后续所有章节的统一坐标系。</p>
+
+        <div class="experiment">
+          <p>动手实验</p>
+          <ol>
+            <li>打开你常用的一款 Agent 产品（如 Cursor、Deep Research、Manus），列出它向你暴露的「观察通道」（你能看到它读了什么）和「动作范围」（它能替你操作什么）。</li>
+            <li>找一件你工作中重复三次以上的任务，按 1.6 节判断：它缺的是观察（信息没给够）还是动作（操作没封装）？</li>
+            <li>用一句话向同事解释 Model 与 Harness 的区别。说不清楚就回到 1.7 节的表。</li>
+          </ol>
+        </div>
+
+<h2>本章产出：最小 ReAct Agent（100 行）</h2>
         <p>以下是一个最简 Agent，用 ReAct（Reason + Act）循环实现。它能在「思考」和「行动」之间交替，直到找到答案。</p>
 
         <h3>Python 版本</h3>

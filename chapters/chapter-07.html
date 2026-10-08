@@ -12,7 +12,7 @@
   <nav class="sidebar">
     <div class="sidebar__brand">
       <h2>AI Agent<br>权威指南</h2>
-      <span class="sidebar__version">v1.0 · 全 21 章</span>
+      <span class="sidebar__version">v1.1 · 内容升级</span>
     </div>
         <ul class="sidebar__nav">
       <li><a href="./" class="nav-item">序章</a></li>
@@ -64,6 +64,16 @@
       </header>
 
       <section class="chapter__body">
+        <div class="goals">
+          <p>学习目标</p>
+          <ul>
+            <li>设计流式、结构化、可中断的 Agent I/O 契约</li>
+            <li>用渐进式披露与信任设计管理用户的不确定感</li>
+            <li>把 Agent 的观察 / 动作空间扩展到语音、视觉与长时任务</li>
+          </ul>
+          <p><strong>章节地图</strong>：7.1 I/O 契约 → 7.2 前端集成 → 7.3 渐进式披露 → 7.4 信任设计 → 7.5 Agentic UX 四原则 → 7.6 空间扩展 → 本章产出。</p>
+        </div>
+
         <h2>7.1 Agent 的 I/O 契约</h2>
         <p>Agent 与用户的交互不是简单的「一问一答」，而是持续的双向对话。设计 I/O 契约时要考虑三种形态：</p>
         <ul>
@@ -103,7 +113,45 @@
           <li><strong>撤销机制</strong>：Agent 执行了不可逆操作（删除、发送、支付）后，提供「撤销」按钮，且窗口期不少于 5 秒。</li>
         </ul>
 
-        <h2>本章产出：WebSocket Agent 聊天界面原型（双语言）</h2>
+                <h2>7.5 Agentic UX：为不确定性设计界面</h2>
+        <p>传统软件的输出是确定的，Agent 的输出是概率性的。Agentic UX 的全部工作，就是<strong>让概率性体验起来可掌控</strong>。四条经过验证的原则：</p>
+        <table class="table">
+          <thead>
+            <tr><th>原则</th><th>做法</th><th>反例</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>状态可见</td><td>「正在检索 → 读到 3 篇 → 正在比对」分阶段可见，带步骤计数</td><td>转圈 40 秒，用户不知道它在干嘛</td></tr>
+            <tr><td>可中断</td><td>任何长任务提供停止 / 改主意入口，中断后保留已完成部分</td><td>只能刷新页面，丢失全部进度</td></tr>
+            <tr><td>可撤销</td><td>写操作前给 diff 预览，确认后执行，执行后可一键回滚</td><td>Agent 直接改文件 / 发邮件</td></tr>
+            <tr><td>可解释</td><td>每个结论附来源与置信度，低置信主动声明</td><td>黑盒给出一个答案，无法追溯</td></tr>
+          </tbody>
+        </table>
+        <p>配套的验收标准：<strong>「截图测试」</strong>——随机截取用户使用过程的三帧，如果三帧都能回答「它在做什么、我还能做什么」，Agentic UX 就算及格。</p>
+
+        <h2>7.6 观察与动作空间的扩展：语音、视觉与长时任务</h2>
+        <p>第 1 章说过：提升 Agent 能力的主要工程手段是扩展观察与动作空间。在交互层，这个扩展有三个方向：</p>
+        <table class="table">
+          <thead>
+            <tr><th>方向</th><th>观察空间扩展</th><th>动作空间扩展</th><th>关键工程问题</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>语音交互</td><td>音频流、语调、环境音</td><td>语音合成、打断响应</td><td>首包延迟（&lt;1s）、barge-in 打断、情绪识别边界</td></tr>
+            <tr><td>视觉交互</td><td>摄像头 / 截图 / 屏幕共享</td><td>标注、圈选、AR 叠加</td><td>隐私告知、帧率与 token 成本平衡</td></tr>
+            <tr><td>长时任务</td><td>日历、邮件、跨天状态</td><td>定时触发、跨会话续作</td><td>断点恢复、上下文跨会话传递、遗忘策略</td></tr>
+          </tbody>
+        </table>
+        <p>长时任务是分水岭：<strong>任务时长从分钟级拉到天级，管理的重心就从「模型质量」转向「状态与恢复」</strong>——每天启动时 Agent 要能回答「昨天做到哪、为什么这么做、下一步是什么」，这依赖第 3 章的记忆系统和第 10 章的追踪能力。</p>
+
+        <div class="experiment">
+          <p>动手实验</p>
+          <ol>
+            <li>用 7.5 节的「截图测试」检查你的产品：任意三帧截图，能否说清 Agent 状态和用户可做什么？</li>
+            <li>给你的 Agent 加「可中断」：记录中断点，重启后能续作。测试中断 3 次的恢复完整性。</li>
+            <li>列一个你想做的长时任务（如「每周一生成竞品周报」），写出它需要的观察通道、动作接口、状态字段。</li>
+          </ol>
+        </div>
+
+<h2>本章产出：WebSocket Agent 聊天界面原型（双语言）</h2>
         <p>下面是一个最小化的 WebSocket 聊天服务端 + 客户端，演示流式输出和结构化事件。</p>
 
         <h3>Python 服务端（FastAPI）</h3>

@@ -12,7 +12,7 @@
   <nav class="sidebar">
     <div class="sidebar__brand">
       <h2>AI Agent<br>权威指南</h2>
-      <span class="sidebar__version">v1.0 · 全 21 章</span>
+      <span class="sidebar__version">v1.1 · 内容升级</span>
     </div>
     <ul class="sidebar__nav">
       <li><a href="./" class="nav-item">序章</a></li>
@@ -213,6 +213,44 @@ console.log(estimate({
           <li>□ ROI 测算过：净收益为正，回本周期可接受</li>
           <li>□ 有 eval 集计划：上线前先建 50 条测试用例</li>
           <li>□ 有回滚预案：Agent 关闭后业务能退回原流程</li>
+        </ul>
+
+        <h2>Agent 还是自动化：先回答三个问题</h2>
+        <p>大量「Agent 项目」失败的第一原因，是<strong>任务本身不需要 Agent</strong>。立项前先用下面三问做最简形态匹配：</p>
+        <table class="table">
+          <thead>
+            <tr><th>问题</th><th>偏向工作流（Workflow / 自动化）</th><th>偏向 Agent</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>执行路径是否预先可知？</td><td>步骤固定、分支有限，人工能直接画成流程图</td><td>路径依赖中间结果，无法在写代码时枚举</td></tr>
+            <tr><td>犯错的代价是什么？</td><td>错了会造成资金、安全、合规损失 → 必须固定流程 + 人工审批</td><td>错了可撤销、可重试，人工逐单复核的成本更高</td></tr>
+            <tr><td>任务出现频率如何？</td><td>每天成千上万次的重复任务，规则引擎更便宜、更稳定</td><td>长尾、低频、每次的形态都不一样</td></tr>
+          </tbody>
+        </table>
+        <p>三问里只要有<strong>任意一问</strong>偏向工作流，就先用工作流实现；确实需要动态决策的那一小段，再单独包一层小 Agent。<strong>最简形态原则</strong>：能用 if/else 解决的不要调模型；能一次调用解决的不要循环；能用循环解决的不要上多 Agent。</p>
+
+        <h2>能力认知层级：你的团队在第几级</h2>
+        <p>「分层能力模型」（第 1 章）从<strong>功能</strong>视角看 Agent；这一张表从<strong>自主度</strong>视角看，方便评估团队现状与目标：</p>
+        <table class="table">
+          <thead>
+            <tr><th>层级</th><th>能力描述</th><th>工程形态</th><th>人的角色</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>L1 反射式</td><td>固定输入触发固定动作，无内部状态</td><td>规则引擎、脚本、Webhook</td><td>编写规则</td></tr>
+            <tr><td>L2 目标驱动</td><td>给定目标，按预定义流程执行，可处理简单分支</td><td>Workflow / DAG 编排</td><td>设计流程</td></tr>
+            <tr><td>L3 规划执行</td><td>自行拆解任务、调用工具、按结果调整计划</td><td>ReAct / Plan-and-Execute 单 Agent</td><td>定义目标与边界</td></tr>
+            <tr><td>L4 反思进化</td><td>评估自身输出、从失败中修正、积累可复用经验</td><td>Reflexion 循环 + 记忆库</td><td>设定红线与验收</td></tr>
+            <tr><td>L5 多智能体</td><td>多个角色分工协作，动态组队与仲裁</td><td>Multi-Agent 编排</td><td>设计组织与治理</td></tr>
+          </tbody>
+        </table>
+        <p>绝大多数企业的现实起点是 L1–L2：把最耗时、最重复的 20% 环节自动化，往往就能拿到 80% 的收益。直接跳 L4/L5 的项目，失败率显著更高。</p>
+
+        <h2>什么时候不要上 Agent</h2>
+        <ul>
+          <li><strong>答案要求 100% 确定且可解释</strong>：财务核算、合规判定、医疗诊断建议——用确定性系统，Agent 只做辅助检索。</li>
+          <li><strong>数据是核心机密且无法脱敏</strong>：先把 PII 过滤和租户隔离（第 11 章）做好，再谈智能。</li>
+          <li><strong>没有评测集</strong>：连「什么样算对」都说不清，就无法判断 Agent 是在帮忙还是在添乱（第 9 章）。</li>
+          <li><strong>高频简单任务</strong>：每天百万次的分类/抽取，微调小模型或规则更经济。</li>
         </ul>
 
         <h2>本章小结</h2>

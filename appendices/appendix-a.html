@@ -12,7 +12,7 @@
   <nav class="sidebar">
     <div class="sidebar__brand">
       <h2>AI Agent<br>权威指南</h2>
-      <span class="sidebar__version">v1.0 · 全 21 章</span>
+      <span class="sidebar__version">v1.1 · 内容升级</span>
     </div>
     <ul class="sidebar__nav">
       <li><a href="./" class="nav-item">序章</a></li>
@@ -192,7 +192,23 @@ async function summarize(client: LLMClient, text: string) {
           <li><strong>规模化阶段（6 个月以上）</strong>：评估自研核心链路，框架只留边缘能力；工具与记忆按 MCP / 自有协议收敛（第 19 章）。</li>
         </ul>
 
-        <h2>本章产出</h2>
+                <h2>怎么看框架跑分</h2>
+        <p>每个框架都会展示对自己有利的基准。阅读跑分时问五个问题，能过滤掉大部分噪音：</p>
+        <table class="table">
+          <thead>
+            <tr><th>问题</th><th>要防的偏差</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>跑的是哪个基准？什么版本的任务子集？</td><td>挑选简单子集、自定义评测集</td></tr>
+            <tr><td>用什么模型？什么档位？</td><td>用旗舰模型给自己贴金（框架能力 ≠ 模型能力）</td></tr>
+            <tr><td>重试几次取最好？</td><td>pass@1 与 pass@k 混着报</td></tr>
+            <tr><td>计时从哪到哪？</td><td>不含工具调用延迟的「裸模型时间」</td></tr>
+            <tr><td>对照组是谁？同期吗？</td><td>和半年前的旧版本框架对比</td></tr>
+          </tbody>
+        </table>
+        <p>结论：跑分用来建「候选短名单」（3 个以内），最终选型永远用你自己的 20 条 case 跑一遍。<strong>框架的 API 手感、调试体验、团队技术栈匹配度，权重高于任何公开跑分。</strong></p>
+
+<h2>本章产出</h2>
         <ul>
           <li>八个框架六维对比表。</li>
           <li>六步选型决策树。</li>

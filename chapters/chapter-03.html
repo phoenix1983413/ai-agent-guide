@@ -12,7 +12,7 @@
   <nav class="sidebar">
     <div class="sidebar__brand">
       <h2>AI Agent<br>权威指南</h2>
-      <span class="sidebar__version">v1.0 · 全 21 章</span>
+      <span class="sidebar__version">v1.1 · 内容升级</span>
     </div>
         <ul class="sidebar__nav">
       <li><a href="./" class="nav-item">序章</a></li>
@@ -64,6 +64,16 @@
       </header>
 
       <section class="chapter__body">
+        <div class="goals">
+          <p>学习目标</p>
+          <ul>
+            <li>按认知科学模型设计记忆分层，并说出各层的存储选型依据</li>
+            <li>掌握上下文工程四操作：Write / Select / Compress / Isolate</li>
+            <li>判断何时从向量记忆升级到图记忆，何时用 Agentic RAG</li>
+          </ul>
+          <p><strong>章节地图</strong>：3.1 认知模型 → 3.2 短期记忆 → 3.3 长期记忆选型 → 3.4 演化 → 3.5 多用户隔离 → 3.6 上下文工程 → 3.7 图记忆 → 3.8 Agentic RAG → 本章产出。</p>
+        </div>
+
         <h2>3.1 记忆分层：工作记忆 / 情景记忆 / 语义记忆 / 程序记忆</h2>
         <p>受认知科学启发，Agent 记忆通常分为四层：</p>
         <ul>
@@ -111,7 +121,153 @@
           <li><strong>数据库行级安全（RLS）</strong>：PostgreSQL RLS 策略强制隔离，即使应用层出错也不串数据。</li>
         </ul>
 
-        <h2>本章产出：最小双层记忆实现</h2>
+                <h2>3.6 上下文工程：Write / Select / Compress / Isolate</h2>
+        <p>记忆系统解决「存什么、怎么存」；上下文工程解决「每一轮决策时，往有限窗口里放什么」。模型窗口在扩大，但<strong>相关信息密度</strong>永远是稀缺资源——塞得越多，注意力越散，成本越高。上下文工程有四个标准操作：</p>
+        <table class="table">
+          <thead>
+            <tr><th>操作</th><th>要解决的问题</th><th>常用手段</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Write 写入</td><td>中间结论不落盘，窗口滚动后就丢了</td><td>scratchpad 便签、任务计划文件、结构化 notes</td></tr>
+            <tr><td>Select 选择</td><td>窗口有限，记忆/工具/知识库全放进去不现实</td><td>相关性检索、时间衰减、任务匹配度过滤</td></tr>
+            <tr><td>Compress 压缩</td><td>长对话撑爆窗口且稀释注意力</td><td>滚动摘要、历史折叠、关键事实抽取</td></tr>
+            <tr><td>Isolate 隔离</td><td>多任务/多用户互相污染</td><td>命名空间、会话级状态、子 Agent 上下文隔离</td></tr>
+          </tbody>
+        </table>
+        <p>四操作与 3.1 的记忆分层是对偶关系：<strong>上下文是工作记忆的显式管理，记忆系统是它的持久化后端。</strong>实践中的预算分配经验：系统提示 + 工具定义占 10–20%，检索注入占 30–50%，近期对话占 20–30%，scratchpad 占 10%，始终预留 10% 余量给模型「思考」。</p>
+        <pre class="language-python"><code># Python：带 token 预算的上下文管理器（四操作的最小实现）
+from dataclasses import dataclass, field
+
+@dataclass
+class ContextManager:
+    budget: int = 4000                      # 上下文总 token 预算
+    scratchpad: list[str] = field(default_factory=list)   # Write
+    archive: list[str] = field(default_factory=list)      # 被压缩的历史
+
+    def write(self, note: str):
+        # 中间结论落盘，防滚动丢失
+        self.scratchpad.append(note)
+
+    def compress(self, history: list[str], keep_last: int = 4):
+        # Compress：旧的折叠成摘要，只保留最近 N 条原文
+        if len(history) &lt;= keep_last:
+            return history
+        old, recent = history[:-keep_last], history[-keep_last:]
+        self.archive.append("【摘要】" + "；".join(old))
+        return recent
+
+    def select(self, memories: list[str], query: str, top_k: int = 3):
+        # Select：按相关度预算内取 Top-K（此处用词重叠率模拟）
+        q = set(query)
+        scored = sorted(memories, key=lambda m: -len(q &amp; set(m)), reverse=False)
+        return scored[:top_k]
+
+    def build(self, query: str, memories: list[str], history: list[str]):
+        # Isolate + 组装：按预算拼接，超预算先砍 scratchpad
+        parts = ["【系统】你是任务助手。", "【问题】" + query]
+        parts += ["【记忆】" + m for m in self.select(memories, query)]
+        parts += ["【最近对话】" + h for h in self.compress(history)]
+        parts += ["【便签】" + n for n in self.scratchpad[-3:]]
+        ctx = "
+".join(parts)
+        while len(ctx) &gt; self.budget and self.scratchpad:
+            self.scratchpad.pop(0)          # 预算超限：先牺牲最旧的便签
+            parts = parts[:-1] + ["【便签】" + n for n in self.scratchpad[-3:]]
+            ctx = "
+".join(parts)
+        return ctx
+
+ctx = ContextManager(budget=1200)
+ctx.write("已确认：预算口径按季度")
+ctx.write("待办：与财务核对汇率")
+print(ctx.build("Q3 营销预算还剩多少？",
+                memories=["Q3 营销预算 500 万", "Q2 实际支出 380 万"],
+                history=["第一轮提问", "第一轮回答", "第二轮提问", "第二轮回答", "第三轮提问"]))</code></pre>
+        <pre class="language-typescript"><code>// TypeScript：同样的四操作，带 token 预算控制
+interface CtxOptions { budget: number }
+
+class ContextManager {
+  private budget: number;
+  private scratchpad: string[] = [];
+  private archive: string[] = [];
+
+  constructor(opts: CtxOptions) { this.budget = opts.budget; }
+
+  write(note: string) { this.scratchpad.push(note); }
+
+  compress(history: string[], keepLast = 4): string[] {
+    if (history.length &lt;= keepLast) return history;
+    const old = history.slice(0, -keepLast);
+    this.archive.push("【摘要】" + old.join("；"));
+    return history.slice(-keepLast);
+  }
+
+  select(memories: string[], query: string, topK = 3): string[] {
+    const q = new Set(query);
+    return [...memories]
+      .sort((a, b) =&gt; (q.size - new Set([...q].filter(c =&gt; a.includes(c)).length)) -
+                     (q.size - new Set([...q].filter(c =&gt; b.includes(c)).length))
+    ).slice(0, topK);
+  }
+
+  build(query: string, memories: string[], history: string[]): string {
+    const parts = ["【系统】你是任务助手。", "【问题】" + query];
+    parts.push(...this.select(memories, query).map(m =&gt; "【记忆】" + m));
+    parts.push(...this.compress(history).map(h =&gt; "【最近对话】" + h));
+    parts.push(...this.scratchpad.slice(-3).map(n =&gt; "【便签】" + n));
+    let ctx = parts.join("
+");
+    while (ctx.length &gt; this.budget &amp;&amp; this.scratchpad.length) {
+      this.scratchpad.shift();
+      ctx = parts.slice(0, -1)
+        .concat(this.scratchpad.slice(-3).map(n =&gt; "【便签】" + n)).join("
+");
+    }
+    return ctx;
+  }
+}
+
+const mgr = new ContextManager({ budget: 1200 });
+mgr.write("已确认：预算口径按季度");
+console.log(mgr.build("Q3 营销预算还剩多少？",
+  ["Q3 营销预算 500 万", "Q2 实际支出 380 万"],
+  ["第一轮提问", "第一轮回答", "第二轮提问", "第二轮回答", "第三轮提问"]));</code></pre>
+
+        <h2>3.7 图记忆与知识图谱</h2>
+        <p>向量检索擅长「语义相似」，但不擅长「关系推理」。当任务需要回答「A 的供应商的竞品有哪些」这类多跳问题时，把知识组织成图更自然。</p>
+        <table class="table">
+          <thead>
+            <tr><th>维度</th><th>向量记忆</th><th>图记忆</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>擅长</td><td>模糊语义匹配、文档问答</td><td>多跳推理、关系约束、路径查询</td></tr>
+            <tr><td>写入成本</td><td>低（切块 +  embedding）</td><td>高（实体抽取、关系对齐、消歧）</td></tr>
+            <tr><td>更新语义</td><td>整块替换</td><td>局部增删边，可追溯变更</td></tr>
+            <tr><td>典型场景</td><td>客服知识库、文档助手</td><td>企业关系网络、风控、研发依赖分析</td></tr>
+          </tbody>
+        </table>
+        <p>落地节奏建议：<strong>先用向量跑通，把「关系查询失败」的 case 收集成评测集，再用图补这一块</strong>。混合形态（向量做粗排 + 图做精排/扩展）通常比纯图更稳。GraphRAG 的社区摘要技术适合「全局性问题」（如「这份财报的总体风险基调」），但构建成本高，中小规模数据不必上。</p>
+
+        <h2>3.8 Agentic RAG：从被动检索到主动探索</h2>
+        <p>朴素 RAG 是「用户问 → 检索 → 拼上下文 → 答」一次过；Agentic RAG 把检索本身变成 Agent 的一个工具，形成「查一步、想一步、再查一步」的循环。</p>
+               <ul>
+          <li><strong>查询重写</strong>：多轮对话中把「它多少钱」改写成带主体的完整查询，解决指代消解。</li>
+          <li><strong>多跳检索</strong>：第一跳得到中间实体，用中间实体发起第二跳检索。</li>
+          <li><strong>检索后反思</strong>：评估检索结果是否支撑回答问题，不够就换关键词重查。</li>
+          <li><strong>引用与溯源</strong>：每个结论绑定来源片段，不可溯源的回答标为「低置信」。</li>
+        </ul>
+        <p>代价是延迟和 token 成本随跳数增长。工程红线：<strong>检索跳数上限（通常 2–3 跳）+ 单问题检索次数配额</strong>，超限后降级为「基于现有信息回答 + 声明缺口」。</p>
+
+        <div class="experiment">
+          <p>动手实验</p>
+          <ol>
+            <li>打开你最近一次和 LLM 的长对话，数一数：如果窗口只保留最近 5 轮，会丢失哪些关键事实？这些就是应该 Write 进 scratchpad 的内容。</li>
+            <li>用 3.6 节的 ContextManager 跑一遍：故意把 budget 调到很小，观察便签被裁剪的顺序是否符合你的预期。</li>
+            <li>找 3 个你系统里需要「关系推理」的问题，判断它们值得上图记忆，还是用更好的 prompt 就能解决。</li>
+          </ol>
+        </div>
+
+<h2>本章产出：最小双层记忆实现</h2>
         <p>一个同时具备「短期上下文 + 长期向量检索」的记忆模块。</p>
 
         <h3>Python 版本</h3>

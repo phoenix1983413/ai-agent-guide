@@ -12,7 +12,7 @@
   <nav class="sidebar">
     <div class="sidebar__brand">
       <h2>AI Agent<br>权威指南</h2>
-      <span class="sidebar__version">v1.0 · 全 21 章</span>
+      <span class="sidebar__version">v1.1 · 内容升级</span>
     </div>
         <ul class="sidebar__nav">
       <li><a href="./" class="nav-item">序章</a></li>
@@ -64,6 +64,16 @@
       </header>
 
       <section class="chapter__body">
+        <div class="goals">
+          <p>学习目标</p>
+          <ul>
+            <li>设计「Agent 优先、人工兜底」的分层服务架构</li>
+            <li>定义人工接管的触发条件与上下文传递规范</li>
+            <li>把合规审核做成流水线，而不是上线前补丁</li>
+          </ul>
+          <p><strong>章节地图</strong>：17.1 需求 → 17.2 工具 → 17.3 记忆 → 17.4 合规 → 17.5 人工接管设计 → 本章产出。</p>
+        </div>
+
         <h2>17.1 需求：多轮对话、工单系统、知识库检索</h2>
         <p>客户服务 Agent 是商业化最成熟的场景。用户诉求通常分三层：</p>
         <ul>
@@ -97,7 +107,31 @@
           <li><strong>审计留痕</strong>：所有对话记录、工单操作、转人工原因必须可查。</li>
         </ul>
 
-        <h2>本章产出：客户服务 Agent 的最小实现（双语言）</h2>
+                <h2>17.5 HITL：人工接管的设计</h2>
+        <p>客服 Agent 的目标不是「零人工」，而是<strong>「人工只接该接的」</strong>。触发条件分三类，全部显式配置：</p>
+        <table class="table">
+          <thead>
+            <tr><th>触发类型</th><th>例子</th><th>设计要点</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>情绪信号</td><td>用户连续两次表达不满、要求投诉</td><td>检测到即转，不让 Agent 再「尝试一次」——每多一轮都在消耗信任</td></tr>
+            <tr><td>风险阈值</td><td>涉及退款金额超限、账号安全、法律责任表述</td><td>阈值写死在 Harness 层，不依赖模型判断</td></tr>
+            <tr><td>能力边界</td><td>知识库检索置信度低、用户问题超出业务范围</td><td>诚实说「这个我接不住，转人工」，优于编造</td></tr>
+          </tbody>
+        </table>
+        <p>接管体验的关键是<strong>上下文交接</strong>：坐席打开对话时，应直接看到「用户摘要 + 已确认事实 + Agent 尝试过什么 + 失败在哪」，而不是从第一轮重读。这依赖第 3 章的记忆沉淀和第 10 章的轨迹回放——HITL 做得好不好，本质上是前面章节功底的集中检验。</p>
+        <p>另一种高级形态是<strong>坐席辅助</strong>（Agent 辅助人而不是替代人）：实时推荐回复、自动填单、话术合规检查。适合「信任建立期」——先让 Agent 在幕后提升人工效率，数据攒够了再前移交互界面。</p>
+
+        <div class="experiment">
+          <p>动手实验</p>
+          <ol>
+            <li>列出你的客服场景 TOP5 必须转人工的触发条件，逐条配置并测试。</li>
+            <li>设计转人工时的「交接卡」：包含哪些字段？找一位客服主管评审。</li>
+            <li>评估你的场景适合「Agent 前台」还是「坐席辅助」起步，写下判断依据。</li>
+          </ol>
+        </div>
+
+<h2>本章产出：客户服务 Agent 的最小实现（双语言）</h2>
 
         <h3>Python 版本</h3>
         <pre><code class="language-python">"""

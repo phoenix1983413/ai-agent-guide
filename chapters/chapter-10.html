@@ -12,7 +12,7 @@
   <nav class="sidebar">
     <div class="sidebar__brand">
       <h2>AI Agent<br>权威指南</h2>
-      <span class="sidebar__version">v1.0 · 全 21 章</span>
+      <span class="sidebar__version">v1.1 · 内容升级</span>
     </div>
         <ul class="sidebar__nav">
       <li><a href="./" class="nav-item">序章</a></li>
@@ -64,6 +64,16 @@
       </header>
 
       <section class="chapter__body">
+        <div class="goals">
+          <p>学习目标</p>
+          <ul>
+            <li>为 Agent 建立 span 级追踪，还原每一次决策的完整调用链</li>
+            <li>用回放把线上失败变成可回归的测试用例</li>
+            <li>会用轨迹聚类定位系统性失败模式，而不是逐条读日志</li>
+          </ul>
+          <p><strong>章节地图</strong>：10.1 追踪 → 10.2 日志设计 → 10.3 回放复现 → 10.4 可视化 → 10.5 轨迹分析与可解释性 → 本章产出。</p>
+        </div>
+
         <h2>10.1 追踪（Tracing）：Agent 执行的完整调用链</h2>
         <p>Agent 的一次执行可能涉及多次 LLM 调用、工具调用、记忆检索。Tracing 把这些串成一条可追溯的链。核心字段：</p>
         <ul>
@@ -98,7 +108,32 @@
           <li><strong>成本热力图</strong>：按任务类型 / 模型 / 工具统计 token 消耗和费用。定位「烧钱大户」。</li>
         </ul>
 
-        <h2>本章产出：OpenTelemetry Agent 追踪模板（双语言）</h2>
+                <h2>10.5 轨迹分析与行为可解释性</h2>
+        <p>追踪解决了「数据在哪」，轨迹分析解决「<strong>为什么这么走</strong>」。核心方法：把一次执行的完整轨迹（观察 → 思考 → 动作 → 结果）当成分析对象，用聚类找系统性模式，而不是逐条人肉读。</p>
+        <table class="table">
+          <thead>
+            <tr><th>分析层面</th><th>方法</th><th>能回答的问题</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>单条轨迹</td><td>步骤序列回放 + 每步的输入输出 diff</td><td>这次为什么错？错在哪一步？</td></tr>
+            <tr><td>失败模式聚类</td><td>对失败轨迹按「首个偏离点」分类</td><td>哪类失败占 60%？先修哪个？</td></tr>
+            <tr><td>行为画像</td><td>统计工具使用分布、步数分布、重试分布</td><td>Agent 的「习惯」健康吗？</td></tr>
+            <tr><td>对比分析</td><td>同一任务不同提示词/模型版本的轨迹 diff</td><td>这次改动到底改了什么行为？</td></tr>
+          </tbody>
+        </table>
+        <p>典型失败模式速查（按出现频率排序）：<strong>工具参数幻觉</strong>（用了不存在的参数值）→ <strong>过早宣布完成</strong>（没验证就说成功）→ <strong>循环兜圈</strong>（两步之间来回）→ <strong>上下文丢失</strong>（长任务后期忘记早期约束）→ <strong>错误级联</strong>（早期小错不纠正，后期放大）。每一类都对应明确的 Harness 补丁，比「换个更强的模型」便宜得多。</p>
+        <p>可解释性的产品化：把「Agent 为什么这么做」做成用户可见的一句话——「我选择了 A 方案，因为 B 数据显示 C」。这既是调试工具，也是 7.5 节信任设计的素材。</p>
+
+        <div class="experiment">
+          <p>动手实验</p>
+          <ol>
+            <li>导出你系统最近 100 次执行的轨迹，按「首个偏离点」手工分类 20 条，看分布是否符合 10.5 节的典型模式。</li>
+            <li>给「循环兜圈」写一条检测规则（如同一对步骤连续出现 3 次），接入告警。</li>
+            <li>挑一次失败，用对比分析法：同任务用两个提示词版本跑，diff 两份轨迹，写下行为差异。</li>
+          </ol>
+        </div>
+
+<h2>本章产出：OpenTelemetry Agent 追踪模板（双语言）</h2>
         <p>下面是一个最小但完整的 OTel 集成模板，把 Agent 的一次执行包装成 trace + span。</p>
 
         <h3>Python 版本</h3>

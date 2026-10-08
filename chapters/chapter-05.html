@@ -12,7 +12,7 @@
   <nav class="sidebar">
     <div class="sidebar__brand">
       <h2>AI Agent<br>权威指南</h2>
-      <span class="sidebar__version">v1.0 · 全 21 章</span>
+      <span class="sidebar__version">v1.1 · 内容升级</span>
     </div>
         <ul class="sidebar__nav">
       <li><a href="./" class="nav-item">序章</a></li>
@@ -64,6 +64,16 @@
       </header>
 
       <section class="chapter__body">
+        <div class="goals">
+          <p>学习目标</p>
+          <ul>
+            <li>在 CoT / ToT / 图计划之间按任务特征选择，控制调用成本</li>
+            <li>实现 Reflexion 反思循环，并识别「虚假反思」陷阱</li>
+            <li>按任务难度分配推理预算，知道何时该「想久一点」</li>
+          </ul>
+          <p><strong>章节地图</strong>：5.1 三种推理框架 → 5.2 任务分解 → 5.3 计划执行与重规划 → 5.4 推理预算入门 → 5.5 Reflexion → 5.6 深度思考 → 本章产出。</p>
+        </div>
+
         <h2>5.1 思维链（CoT）vs 思维树（ToT）vs 图计划</h2>
         <p>Agent 面对复杂任务时，不是一步到位，而是先「想清楚」再动手。三种主流推理框架：</p>
         <table class="table">
@@ -405,7 +415,102 @@ class ToTPlanner {
   console.log("执行结果：", result);
 })();</code></pre>
 
-        <h2>本章产出</h2>
+                <h2>5.5 Reflexion：反思与自我修正</h2>
+        <p>Reflexion 的核心循环是「<strong>行动 → 评估 → 语言化反思 → 改进再行动</strong>」。与重试的区别在于：重试是原样再来一遍，反思是把失败转化成一句可执行的教训，注入下一轮的上下文。</p>
+        <table class="table">
+          <thead>
+            <tr><th>组件</th><th>职责</th><th>实现要点</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Actor</td><td>产生行动</td><td>与普通 ReAct 相同</td></tr>
+            <tr><td>Evaluator</td><td>给行动打分</td><td>二值（成败）或标量（0–1）；可用规则、测试、人工</td></tr>
+            <tr><td>Self-Reflection</td><td>把失败翻译成教训</td><td> prompt：「上一步错在哪？下次具体改什么？」输出 1–3 句</td></tr>
+          </tbody>
+        </table>
+        <p>关键约束：<strong>反思轮次上限（通常 2–3 轮）</strong>。没有上限的反思会退化成「自我说服」——模型开始为错误找合理化解释。若两轮反思后仍失败，应升级为人工接管或换策略，而不是继续「想」。</p>
+        <pre class="language-python"><code># Python：Reflexion 最小循环
+class ReflexionAgent:
+    def __init__(self, llm, evaluator, max_rounds=3):
+        self.llm = llm                # 模型客户端
+        self.evaluator = evaluator    # 评分函数：action -> (score, feedback)
+        self.max_rounds = max_rounds
+        self.lessons: list[str] = []  # 跨任务的经验库（可持久化）
+
+    def run(self, task: str) -&gt; str:
+        reflections = ""
+        for round_no in range(1, self.max_rounds + 1):
+            prompt = f"任务：{task}
+历史教训：{reflections or '无'}
+请给出下一步行动。"
+            action = self.llm.generate(prompt)
+            score, feedback = self.evaluator(action)
+            if score &gt;= 1.0:
+                return action
+            # 把失败翻译成可执行教训，而非原样重试
+            reflections = self.llm.generate(
+                f"行动：{action}
+结果失败：{feedback}
+"
+                f"用一句话说明错在哪、下次具体改什么。")
+            self.lessons.append(reflections)
+        return f"未完成（已反思 {self.max_rounds} 轮）"
+
+agent = ReflexionAgent(llm=my_llm, evaluator=run_tests, max_rounds=3)</code></pre>
+        <pre class="language-typescript"><code>// TypeScript：Reflexion 最小循环
+interface Evaluator { (action: string): Promise&lt;{ score: number; feedback: string }&gt; }
+
+class ReflexionAgent {
+  private lessons: string[] = [];
+  constructor(
+    private llm: { generate(p: string): Promise&lt;string&gt; },
+    private evaluator: Evaluator,
+    private maxRounds = 3,
+  ) {}
+
+  async run(task: string): Promise&lt;string&gt; {
+    let reflections = "";
+    for (let round = 1; round &lt;= this.maxRounds; round++) {
+      const action = await this.llm.generate(
+        `任务：${task}
+历史教训：${reflections || "无"}
+请给出下一步行动。`);
+      const { score, feedback } = await this.evaluator(action);
+      if (score &gt;= 1.0) return action;
+      reflections = await this.llm.generate(
+        `行动：${action}
+结果失败：${feedback}
+用一句话说明错在哪、下次具体改什么。`);
+      this.lessons.push(reflections);
+    }
+    return `未完成（已反思 ${this.maxRounds} 轮）`;
+  }
+}</code></pre>
+
+        <h2>5.6 推理预算：从快速响应到深度思考</h2>
+        <p>推理模型（o1 / R1 / 深度思考模式）用「更长的内部思考」换准确率，但延迟和成本同步上升。工程上要按任务难度分配预算，而不是全局开满。</p>
+        <table class="table">
+          <thead>
+            <tr><th>任务类型</th><th>预算档位</th><th>说明</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>分类、抽取、格式化</td><td>无思考，直接输出</td><td>思考反而引入犹豫和漂移</td></tr>
+            <tr><td>常规问答、单步工具调用</td><td>轻量（数百 token 思考）</td><td>默认档</td></tr>
+            <tr><td>多步规划、代码调试</td><td>深度（数千 token 思考）</td><td>值得等</td></tr>
+            <tr><td>架构决策、复杂排障</td><td>深度 + 多轮反思</td><td>配合人工审查</td></tr>
+          </tbody>
+        </table>
+        <p>落地手段：① <strong>难度预判路由</strong>——用轻量分类器或规则（问题长度、是否含多约束）先分档；② <strong>思考过程截断</strong>——设置 max reasoning tokens，超限强制收尾；③ <strong>超时降级</strong>——深度思考超过 SLA 就切到轻量档 + 声明置信度。记住：<strong>推理预算是产品体验的一部分</strong>，用户为一个简单问题等 30 秒，是设计失败。</p>
+
+        <div class="experiment">
+          <p>动手实验</p>
+          <ol>
+            <li>用 5.5 节的 ReflexionAgent 跑一个「生成能通过测试的代码」任务，记录每轮的 feedback 和教训句子，观察第 2、3 轮反思是否在「找借口」。</li>
+            <li>把你系统中的 LLM 调用按 5.6 节四档分类，统计每档的量与成本占比，找出被过度思考的任务。</li>
+            <li>给「简单问题等 30 秒」写一条你的防线：分档规则、截断阈值、降级路径，各一行。</li>
+          </ol>
+        </div>
+
+<h2>本章产出</h2>
         <ul>
           <li>一个带重规划的 ToT 任务执行器，支持最大深度、分支因子、重试次数配置。</li>
           <li>Python 版可直接接入 OpenAI API；TypeScript 版适合 Node.js / Edge 环境。</li>

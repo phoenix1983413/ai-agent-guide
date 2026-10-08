@@ -12,7 +12,7 @@
   <nav class="sidebar">
     <div class="sidebar__brand">
       <h2>AI Agent<br>权威指南</h2>
-      <span class="sidebar__version">v1.0 · 全 21 章</span>
+      <span class="sidebar__version">v1.1 · 内容升级</span>
     </div>
     <ul class="sidebar__nav">
       <li><a href="./" class="nav-item">序章</a></li>
@@ -65,6 +65,16 @@
 
       <section class="chapter__body">
         <p>单 Agent 靠工具扩展能力，多 Agent 靠协议交换能力。协议解决的是互操作问题：两个来自不同团队、不同框架、不同厂商的 Agent，如何在没有事先约定的情况下发现彼此、调用彼此、信任彼此。本章拆解当前两个事实标准，并给出可落地的最小实现。</p>
+
+        <div class="goals">
+          <p>学习目标</p>
+          <ul>
+            <li>分清 MCP（Agent↔工具）与 A2A（Agent↔Agent）的分工</li>
+            <li>按场景选择协议组合，不过度设计</li>
+            <li>识破协议层的三个安全陷阱</li>
+          </ul>
+          <p><strong>章节地图</strong>：19.1 A2A 现状 → 19.2 MCP 详解 → 19.3 未来接口 → 19.4 协议安全 → 19.5 协议选型决策 → 本章产出。</p>
+        </div>
 
         <h2>19.1 A2A（Agent-to-Agent）协议现状</h2>
         <p>A2A 是 Google 提出的 Agent 间通信协议，核心思想：把 Agent 看成一个「远程服务」，有标准接口完成健康检查、任务提交、状态查询。关键设计：</p>
@@ -245,7 +255,31 @@ client.close();
           <li><strong>任务重放</strong>：抓包后重复提交 <code>tasks/send</code> 导致重复下单。对策：幂等键 + 服务端去重窗口。</li>
         </ul>
 
-        <h2>本章产出：协议对比表</h2>
+                <h2>19.5 协议选型决策：不过度设计</h2>
+        <p>协议爆炸的年代，选型原则只有一条：<strong>先解决问题，再对齐生态。</strong>一个决策表：</p>
+        <table class="table">
+          <thead>
+            <tr><th>你的问题</th><th>方案</th><th>理由</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>让 Agent 用上内部 API / 数据源</td><td>MCP Server 包一层</td><td>工具集成的事实标准，客户端生态现成</td></tr>
+            <tr><td>两个异构 Agent 互派任务</td><td>A2A 或直接 HTTP + 任务模型</td><td>跨组织衔接；组织内直接函数调用更省</td></tr>
+            <tr><td>统一管理全公司工具权限</td><td>企业 MCP 网关（统一鉴权 / 限流 / 审计）</td><td>协议是技术问题，治理是组织问题（13.5 节）</td></tr>
+            <tr><td>内部系统已经很完善</td><td>不用新协议</td><td>REST/gRPC + 工单就是最稳的「Agent 接口」</td></tr>
+          </tbody>
+        </table>
+        <p>演进路线判断：MCP 拿下「Agent 与工具/数据」这一层已无悬念；「Agent 与 Agent」层还在战国（A2A、ANP、各类私有协议），<strong>现在把业务逻辑押在某个互操作协议上有风险，把工具层押在 MCP 上没有</strong>。务实的做法：Agent 间接口先用自己的版本化 API，同时关注生态收敛。</p>
+
+        <div class="experiment">
+          <p>动手实验</p>
+          <ol>
+            <li>列出你要集成的 5 个工具，逐个判断：裸 API / MCP Server / Agent Skill 哪种形态最合适（参考 4.6 节）。</li>
+            <li>给你现有的 Agent 间调用（如果有）画一张协议演进图：今天什么、半年后什么。</li>
+            <li>用 19.4 节的三个陷阱检查你的 MCP/A2A 配置：权限范围、来源校验、调用留痕各打勾。</li>
+          </ol>
+        </div>
+
+<h2>本章产出：协议对比表</h2>
         <table class="table">
           <thead>
             <tr><th>维度</th><th>A2A</th><th>MCP</th><th>自研 RPC</th></tr>

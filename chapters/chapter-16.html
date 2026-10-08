@@ -12,7 +12,7 @@
   <nav class="sidebar">
     <div class="sidebar__brand">
       <h2>AI Agent<br>权威指南</h2>
-      <span class="sidebar__version">v1.0 · 全 21 章</span>
+      <span class="sidebar__version">v1.1 · 内容升级</span>
     </div>
         <ul class="sidebar__nav">
       <li><a href="./" class="nav-item">序章</a></li>
@@ -64,6 +64,16 @@
       </header>
 
       <section class="chapter__body">
+        <div class="goals">
+          <p>学习目标</p>
+          <ul>
+            <li>为数据分析 Agent 设计「语义层 + 校验链」双保险</li>
+            <li>理解 NL2SQL 的准确率边界，知道哪里必须加人工确认</li>
+            <li>让每个数字可追溯：从问题到 SQL 到结果到出处</li>
+          </ul>
+          <p><strong>章节地图</strong>：16.1 需求 → 16.2 工具 → 16.3 记忆 → 16.4 边界 → 16.5 NL2SQL 准确率与校验链 → 本章产出。</p>
+        </div>
+
         <h2>16.1 需求：自然语言提问 → 查数 → 可视化</h2>
         <p>数据分析 Agent 的目标是让非技术用户也能自助取数。典型交互：</p>
         <ul>
@@ -94,7 +104,30 @@
           <li><strong>结果校验</strong>：用规则或轻量模型检查返回数据是否合理（如负数销售额、未来日期）。</li>
         </ul>
 
-        <h2>本章产出：数据分析 Agent 的最小实现（双语言）</h2>
+                <h2>16.5 NL2SQL 的准确率边界与校验链</h2>
+        <p>自然语言查数最大的风险不是「查不到」，而是<strong>「查到一个看起来对、实际错的数」</strong>——错误数字一旦进入周报和决策，代价远超故障。校验链要建在三个层面上：</p>
+        <table class="table">
+          <thead>
+            <tr><th>层面</th><th>手段</th><th>拦住什么错</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>语义层</td><td>指标字典（口径、维度、过滤条件）+ 表关系文档；模型不许「猜」字段</td><td>口径错误（把「活跃用户」算成「注册用户」）</td></tr>
+            <tr><td>执行层</td><td>只读账号 + 行数上限 + 超时 + EXPLAIN 预检全表扫描</td><td>慢查询打挂库、误写操作</td></tr>
+            <tr><td>结果层</td><td>规模合理性检查（订单量不会日增 50 倍）、环比波动标注、空结果反问确认</td><td>静默的错误数字、单位错误、时间窗口错位</td></tr>
+          </tbody>
+        </table>
+        <p>落地配方：① <strong>指标字典是第一公民</strong>——先让业务把「GMV、复购率」等高频指标的定义写成文档，Agent 只允许按字典组装 SQL；② 每个结果附<strong>可复现 SQL</strong>，用户点开能自己跑；③ 波动超过阈值的数字自动触发「确认话术」而非直接呈现。记住：<strong>数据分析 Agent 的信任是靠「每次都可验证」攒出来的，一次说不清的答案就清零。</strong></p>
+
+        <div class="experiment">
+          <p>动手实验</p>
+          <ol>
+            <li>写下你业务里 TOP10 指标的口径定义（口径、维度、示例 SQL），这就是指标字典 v0。</li>
+            <li>构造 5 个「说得模糊」的问题（如「上个月卖得怎么样」），观察 Agent 的澄清策略是否符合预期。</li>
+            <li>给结果层加一条 sanity check：任一指标环比波动 &gt;30% 时，输出必须附波动归因提示。</li>
+          </ol>
+        </div>
+
+<h2>本章产出：数据分析 Agent 的最小实现（双语言）</h2>
 
         <h3>Python 版本</h3>
         <pre><code class="language-python">"""

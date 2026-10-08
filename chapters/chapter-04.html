@@ -12,7 +12,7 @@
   <nav class="sidebar">
     <div class="sidebar__brand">
       <h2>AI Agent<br>权威指南</h2>
-      <span class="sidebar__version">v1.0 · 全 21 章</span>
+      <span class="sidebar__version">v1.1 · 内容升级</span>
     </div>
         <ul class="sidebar__nav">
       <li><a href="./" class="nav-item">序章</a></li>
@@ -64,6 +64,16 @@
       </header>
 
       <section class="chapter__body">
+        <div class="goals">
+          <p>学习目标</p>
+          <ul>
+            <li>设计可注册、可发现、可降级的工具系统，并处理调用失败</li>
+            <li>理解 Agent Skills 规范与 MCP 工具的分工</li>
+            <li>了解 Computer Use、浏览器自动化与多模态工具的落地方式</li>
+          </ul>
+          <p><strong>章节地图</strong>：4.1 声明范式 → 4.2 参数对齐 → 4.3 执行观测 → 4.4 错误处理 → 4.5 安全边界 → 4.6 Agent Skills → 4.7 Computer Use → 4.8 多模态 → 本章产出。</p>
+        </div>
+
         <h2>4.1 工具声明范式</h2>
         <p>Agent 的工具调用目前主流三种声明方式：</p>
         <ul>
@@ -111,7 +121,61 @@
           <li><strong>人工兜底</strong>：高风险操作（删除、发送、支付）强制人工确认。</li>
         </ul>
 
-        <h2>本章产出：5 个工具的注册表（双语言）</h2>
+                <h2>4.6 Agent Skills：把能力打包成可分发单元</h2>
+        <p>工具解决了「单个动作怎么调」；Skill 解决「一类能力怎么打包分发」。一个 Skill 是一个自包含目录，通常包含：</p>
+        <table class="table">
+          <thead>
+            <tr><th>组成</th><th>作用</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>SKILL.md</td><td>能力说明书：适用场景、输入输出契约、使用示例（给模型读的文档）</td></tr>
+            <tr><td>脚本 / 工具</td><td>Skill 依赖的可执行代码，按需加载而非全量注册</td></tr>
+            <tr><td>资源文件</td><td>模板、配置、参考资料、测试数据</td></tr>
+          </tbody>
+        </table>
+        <p>关键设计是<strong>渐进式披露</strong>：启动时只把各 Skill 的名称和一句话描述放进上下文（几十 token），模型判断「可能用得上」时才加载完整 SKILL.md，真正执行时才加载脚本。这让「几十个 Skill」和「5 个 Skill」对上下文窗口的占用几乎一样。</p>
+        <table class="table">
+          <thead>
+            <tr><th>形态</th><th>分发单位</th><th>适用</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>MCP 工具</td><td>单个工具/资源/提示词</td><td>通用能力：文件、数据库、API 的标准化暴露</td></tr>
+            <tr><td>Agent Skill</td><td>一整套工作流 + 脚本 + 文档</td><td>领域能力：财报生成、竞品调研、代码迁移</td></tr>
+          </tbody>
+        </table>
+
+        <h2>4.7 Computer Use 与浏览器自动化</h2>
+        <p>当目标系统没有 API 时，Agent 只能「像人一样操作界面」。三条路线的取舍：</p>
+        <table class="table">
+          <thead>
+            <tr><th>路线</th><th>原理</th><th>优点</th><th>缺点</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>DOM 快照</td><td>抽取页面可交互元素的文本化表示（role + 名称 + 选择器）</td><td>定位准、token 省、可复用选择器</td><td>依赖前端规范；Canvas/影子 DOM 失效</td></tr>
+            <tr><td>截图视觉</td><td>VLM 看截图，输出坐标点击</td><td>不挑前端，能应对任意界面</td><td>token 贵、坐标漂移、滚动/长页难处理</td></tr>
+            <tr><td>混合</td><td>DOM 定位 + 视觉校验</td><td>兼顾准确与泛化</td><td>实现复杂度最高</td></tr>
+          </tbody>
+        </table>
+        <p>工程红线：<strong>必须跑在隔离沙箱</strong>（容器/虚拟机/独立浏览器 profile），禁访问内网；金融操作类页面加人工确认闸；执行后校验页面状态（URL、关键元素）再宣布成功。</p>
+
+        <h2>4.8 多模态工具</h2>
+        <ul>
+          <li><strong>视觉理解</strong>：图表解读、截图找元素、文档版面分析。注意图片 token 成本远高于文本，按需给图，别把全页截图当默认输入。</li>
+          <li><strong>语音</strong>：ASR 负责「听见」，TTS 负责「说出」。实时对话场景关注首包延迟与打断处理（barge-in），批处理场景关注准确率与说话人分离。</li>
+          <li><strong>文档解析</strong>：PDF/扫描件走 OCR + 版面分析，表格结构比纯文本抽取更影响下游问答质量。</li>
+        </ul>
+        <p>多模态的通用原则：<strong>把模态转换放在 Harness 层做标准化</strong>——语音转文字、图片转结构化描述后再进模型，而不是让业务模型直接吞原始二进制。</p>
+
+        <div class="experiment">
+          <p>动手实验</p>
+          <ol>
+            <li>给你最常用的工具写一份 SKILL.md：场景描述放最前，输入输出契约列成表格，最后放两个正例一个反例。</li>
+            <li>对比你的系统和 4.7 节三条 Computer Use 路线：你（将要）用哪条？为什么？</li>
+            <li>统计你的工具返回值里有多少「模型其实不需要」的字段，砍掉它们，观察调用成功率变化。</li>
+          </ol>
+        </div>
+
+<h2>本章产出：5 个工具的注册表（双语言）</h2>
         <p>以下示例注册 5 个常用工具：搜索、计算、文件读写、HTTP 请求、代码执行。</p>
 
         <h3>Python 版本</h3>

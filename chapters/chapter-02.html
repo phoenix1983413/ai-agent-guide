@@ -12,7 +12,7 @@
   <nav class="sidebar">
     <div class="sidebar__brand">
       <h2>AI Agent<br>权威指南</h2>
-      <span class="sidebar__version">v1.0 · 全 21 章</span>
+      <span class="sidebar__version">v1.1 · 内容升级</span>
     </div>
         <ul class="sidebar__nav">
       <li><a href="./" class="nav-item">序章</a></li>
@@ -64,6 +64,16 @@
       </header>
 
       <section class="chapter__body">
+        <div class="goals">
+          <p>学习目标</p>
+          <ul>
+            <li>画出 Agent 的四层通用架构，说清每层的职责边界</li>
+            <li>理解 Harness 作为「运行与治理层」的四个工程职责</li>
+            <li>能在「流程编排 → 完全自主」的光谱上为任务选最简形态</li>
+          </ul>
+          <p><strong>章节地图</strong>：2.1 经典四层架构 → 2.2 模块解耦 → 2.3 同步 vs 异步 → 2.4 容错降级 → 2.5 Harness 工程 → 2.6 设计光谱 → 本章产出。</p>
+        </div>
+
         <h2>2.1 经典架构：感知层、大脑层、执行层、记忆层</h2>
         <p>绝大多数生产级 Agent 都可以拆成四层。理解这四层，你才能判断别人的架构设计是否合理，也才能对自己的系统做模块化拆分。</p>
         <div class="mermaid">
@@ -109,7 +119,47 @@ graph TD
           <li><strong>降级</strong>：LLM 不可用时，能否退化成规则引擎或硬编码流程？</li>
         </ul>
 
-        <h2>本章产出：通用架构骨架（双语言）</h2>
+                <h2>2.5 Harness 工程：把循环固化成基础设施</h2>
+        <p>Harness 是 Agent 边界内环绕模型的运行与治理层——它不「思考」，但决定了思考的输入质量和输出安全性。生产系统与 Demo 的差距，一半在模型选型，另一半在 Harness。</p>
+        <table class="table">
+          <thead>
+            <tr><th>职责</th><th>要解决的具体问题</th><th>常见实现</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>上下文构造</td><td>有限窗口里放什么、丢什么、按什么顺序放</td><td>上下文管理器、记忆检索、摘要压缩</td></tr>
+            <tr><td>工具网关</td><td>模型幻觉出不存在的工具怎么办；参数不合规怎么办</td><td>Schema 校验、白名单、错误回填</td></tr>
+            <tr><td>循环与状态</td><td>无限循环、状态丢失、长任务中断后如何恢复</td><td>步数上限、检查点、幂等设计</td></tr>
+            <tr><td>安全与纠正</td><td>危险动作、错误级联、幻觉累积</td><td>权限分级、验证器、回滚、人工接管</td></tr>
+          </tbody>
+        </table>
+        <p><strong>一个判据</strong>：如果你的系统把「下一步做什么」完全交给模型、且没有任何步数/预算/权限约束，那不是 Agent，是失控的抽样。Harness 的存在意味着：<strong>模型的自由是被设计出来的，不是默认的。</strong></p>
+
+        <h2>2.6 设计光谱：从流程编排到完全自主</h2>
+        <p>架构选型不是二选一，而是一条光谱。按自主度从低到高：</p>
+        <table class="table">
+          <thead>
+            <tr><th>形态</th><th>决策权</th><th>可预测性</th><th>适用</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>固定 DAG 编排</td><td>人（写代码时固定）</td><td>极高</td><td>路径已知、量大、要审计</td></tr>
+            <tr><td>条件分支 / Router</td><td>人设计分支，模型做路由判断</td><td>高</td><td>少数几个明确岔路</td></tr>
+            <tr><td>Plan-and-Execute</td><td>模型出计划，人审后执行</td><td>中高</td><td>任务复杂但可预估</td></tr>
+            <tr><td>ReAct 循环</td><td>模型逐步决策</td><td>中</td><td>路径依赖中间结果</td></tr>
+            <tr><td>多 Agent 自治</td><td>多个模型角色协商</td><td>低</td><td>探索性、长尾复杂任务</td></tr>
+          </tbody>
+        </table>
+        <p><strong>选型流程</strong>：从光谱最左端开始，遇到「表达能力不足」再往右移一格，每次只移一格。往右每一格都要补上对应的护栏（第 11 章）。大多数生产系统的最优解落在「Router + 少量 ReAct」区间。</p>
+
+        <div class="experiment">
+          <p>动手实验</p>
+          <ol>
+            <li>把你正做的系统画到 2.6 节的光谱上，问自己：往左移一格会不会更好？往右移一格的收益是否值得护栏成本？</li>
+            <li>统计你的系统里模型自主决策的节点数量。超过 5 个的，考虑收敛成「一次规划 + 固定执行」。</li>
+            <li>给 Harness 四职责各写一条你现在缺失的检查项，作为本周迭代清单。</li>
+          </ol>
+        </div>
+
+<h2>本章产出：通用架构骨架（双语言）</h2>
         <p>以下是一个最小但结构完整的 Agent 骨架，体现四层解耦。</p>
 
         <h3>Python 版本</h3>

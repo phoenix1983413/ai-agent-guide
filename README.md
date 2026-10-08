@@ -1,6 +1,6 @@
 # AI Agent 权威指南
 
-> 从入门到生产级落地的系统化路径。21 章 + Part 0 + 4 个附录，双语言（Python + TypeScript）。v1.0 全本完结。
+> 从入门到生产级落地的系统化路径。21 章 + Part 0 + 4 个附录，双语言（Python + TypeScript）。v1.1 内容升级版。
 
 - 📖 在线阅读：https://phoenix1983413.github.io/ai-agent-guide/
 - 🗂️ 仓库：https://github.com/phoenix1983413/ai-agent-guide
@@ -81,6 +81,7 @@ ai-agent-guide/
 | v0.1 | Part 0 + 第 1–4 章首发 |
 | v0.2 | 全 21 章 + 4 个附录骨架完成 |
 | v1.0 | 内容补厚：Part 0 与第 11/19/20/21 章扩至每章 200+ 行正文并补齐双语言代码；附录 A–D 扩充（8 框架对比 / 模型路由器 / 45 条术语 / 学习路径）；27 页侧边栏统一为完整目录并修复 active 高亮 |
+| v1.1 | 参考两本开源书籍全面升级（yeasy《智能体AI权威指南》+ 李博杰《深入理解AI Agent》）：每章新增「学习目标 + 章节地图 + 动手实验」结构；新增认知层级、观察/动作空间、Model–Harness、上下文工程四操作、图记忆、Agentic RAG、Agent Skills、Computer Use、Reflexion、推理预算、社会模拟、博弈论、涌现边界、Agentic UX、间接注入防御、AgentBench、轨迹分析、故障模式、持续学习、集成反模式、架构陷阱、Agentic Coding、NL2SQL 校验链、HITL、隐私三层分级、协议选型决策、EU AI Act 风险分级映射、实验到生产路线图等专题 |
 
 ## 本地预览
 

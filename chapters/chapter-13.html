@@ -12,7 +12,7 @@
   <nav class="sidebar">
     <div class="sidebar__brand">
       <h2>AI Agent<br>权威指南</h2>
-      <span class="sidebar__version">v1.0 · 全 21 章</span>
+      <span class="sidebar__version">v1.1 · 内容升级</span>
     </div>
         <ul class="sidebar__nav">
       <li><a href="./" class="nav-item">序章</a></li>
@@ -64,6 +64,16 @@
       </header>
 
       <section class="chapter__body">
+        <div class="goals">
+          <p>学习目标</p>
+          <ul>
+            <li>为企业系统选对对接模式：API、事件流还是数据库</li>
+            <li>把代码执行关进沙箱，并设计密钥轮换</li>
+            <li>识别企业级集成的五种反模式，绕开它们</li>
+          </ul>
+          <p><strong>章节地图</strong>：13.1 系统对接 → 13.2 实时数据流 → 13.3 代码沙箱 → 13.4 API 经济 → 13.5 五种反模式 → 本章产出。</p>
+        </div>
+
         <h2>13.1 企业系统：ERP / CRM / OA 的对接模式</h2>
         <p>Agent 要落地企业，必须接入现有系统。三种对接方式：</p>
         <ul>
@@ -101,7 +111,32 @@
           <li><strong>密钥轮换</strong>：API key 定期自动轮换，泄露时一键吊销。</li>
         </ul>
 
-        <h2>本章产出：企业 IM + 知识库集成示例（双语言）</h2>
+                <h2>13.5 企业级集成的五种反模式</h2>
+        <p>企业集成失败，很少是技术不行，多数是姿势不对。五种高频反模式，按伤害排序：</p>
+        <table class="table">
+          <thead>
+            <tr><th>反模式</th><th>表象</th><th>后果</th><th>正解</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>大爆炸接入</td><td>一次对接 ERP 全部模块</td><td>半年看不到产出，预算烧完</td><td>从一个「高频 + 低风险 + 可度量」的场景切入</td></tr>
+            <tr><td>影子 IT</td><td>业务团队自己拉个 Agent 直连生产库</td><td>权限失控、审计真空</td><td>平台提供受控通道，让合规的路成为最省事的路</td></tr>
+            <tr><td>把 Agent 当 ETL</td><td>用 LLM 做大批量确定性转换</td><td>又贵又不稳还不可回归</td><td>确定性转换用代码，LLM 只做「理解与生成」</td></tr>
+            <tr><td>绕过主数据</td><td>Agent 自建客户 / 物料档案</td><td>两套数据打架，信任崩塌</td><td>只读主数据，写操作走主系统的受控 API</td></tr>
+            <tr><td>忽视回滚</td><td>上线后才想「怎么撤」</td><td>一次故障演变成事故</td><td>每个集成点先写回滚方案再开发</td></tr>
+          </tbody>
+        </table>
+        <p>一张自查表：① 我们的集成点有几个？每个的负责人、回滚方式、审计日志在哪？② 写操作是否全部经过审批链？③ Agent 产生的数据进入主系统前有校验层吗？三问答不上来，先补治理再扩场景。</p>
+
+        <div class="experiment">
+          <p>动手实验</p>
+          <ol>
+            <li>画出你的 Agent 与所有企业系统的连接图，标注每条连接的读写方向和审批链。</li>
+            <li>对照 13.5 节五种反模式给你的项目打分（0-2），超过 5 分的项目暂停扩场景，先还技术债。</li>
+            <li>挑一个写操作，完整走一遍「回滚方案」：触发条件、回滚步骤、数据修复、通知谁。</li>
+          </ol>
+        </div>
+
+<h2>本章产出：企业 IM + 知识库集成示例（双语言）</h2>
         <p>以下示例演示 Agent 如何接收企业 IM 消息、查询知识库、回复用户。</p>
 
         <h3>Python 版本</h3>
