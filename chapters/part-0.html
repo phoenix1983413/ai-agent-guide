@@ -12,7 +12,7 @@
   <nav class="sidebar">
     <div class="sidebar__brand">
       <h2>AI Agent<br>权威指南</h2>
-      <span class="sidebar__version">v1.1 · 内容升级</span>
+      <span class="sidebar__version">v1.2 · 实战强化</span>
     </div>
     <ul class="sidebar__nav">
       <li><a href="./" class="nav-item">序章</a></li>
@@ -253,7 +253,29 @@ console.log(estimate({
           <li><strong>高频简单任务</strong>：每天百万次的分类/抽取，微调小模型或规则更经济。</li>
         </ul>
 
-        <h2>本章小结</h2>
+        <h2>路线选择：低代码平台还是代码开发？</h2>
+        <p>这是决策者被问得最多的问题：「我们到底要不要自己写代码？」现实是两条路线都有一席之地，<strong>选错的代价通常是 3–6 个月的返工</strong>。用下面三个问题就能定：</p>
+        <ol>
+          <li><strong>数据能不能出内网？</strong>金融、医疗、政务场景，数据合规红线通常直接否掉公有云低代码平台，只能私有化部署（Dify 支持，Coze 基本不支持）或走上代码路线。</li>
+          <li><strong>流程会不会高频变动？</strong>Coze / Dify 这类平台的可视化工作流改起来快，适合「业务人员自己调」；一旦流程涉及复杂分支、自定义算法、性能敏感，画布会变成面条代码，此时代码路的收益才上来。</li>
+          <li><strong>团队里有没有人能写 Python？</strong>没有稳定工程人力时，平台是唯一现实选项；有 2 个以上工程师，代码路线的长期维护成本反而更低。</li>
+        </ol>
+        <table class="table">
+          <thead><tr><th>维度</th><th>低代码平台（Coze / Dify）</th><th>代码路线（框架 + 自研）</th></tr></thead>
+          <tbody>
+            <tr><td>上线速度</td><td>小时–天级</td><td>周–月级</td></tr>
+            <tr><td>定制深度</td><td>受平台组件约束</td><td>无上限</td></tr>
+            <tr><td>私有化部署</td><td>Dify 支持；Coze 受限</td><td>完全自主</td></tr>
+            <tr><td>单请求成本</td><td>平台加价 + 按量计费</td><td>仅模型 API 成本</td></tr>
+            <tr><td>性能上限</td><td>共享实例，延迟不可控</td><td>可优化（缓存/并发/本地模型）</td></tr>
+            <tr><td>维护依赖</td><td>平台版本与政策风险</td><td>自己的工程质量</td></tr>
+          </tbody>
+        </table>
+        <div class="goals">
+          <p><strong>务实策略：低代码验证 → 代码重写。</strong>先用平台 2–4 周跑出业务价值（证明「这活儿 Agent 能干」），拿到真实流量和数据后再决定要不要重写。反过来的顺序（先闭门造三个月轮子）是 ROI 杀手。注意：平台 API 化调用（Dify / Coze 都提供 HTTP/SDK 接口）意味着低代码与代码路线之间不是单行道——第 13 章会讲怎么把平台工作流当「外部系统」集成进自研系统。</p>
+        </div>
+
+<h2>本章小结</h2>
         <p>Agent 是「能自主行动的 AI」，不是 Chatbot 的升级版，而是一个新品类。它的价值在<strong>多步骤、跨系统、需要持续观察和调整</strong>的任务里最明显。落地的前提是：有明确场景、有可调用工具、有权限模型、有灰度机制。把这四条和上面的 checklist 对着过一遍，你就可以立项了。</p>
 
         <div class="chapter__nav">

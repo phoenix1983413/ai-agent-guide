@@ -12,7 +12,7 @@
   <nav class="sidebar">
     <div class="sidebar__brand">
       <h2>AI Agent<br>权威指南</h2>
-      <span class="sidebar__version">v1.1 · 内容升级</span>
+      <span class="sidebar__version">v1.2 · 实战强化</span>
     </div>
         <ul class="sidebar__nav">
       <li><a href="./" class="nav-item">序章</a></li>
@@ -140,6 +140,38 @@
           </ol>
         </div>
 
+<h2>本地模型部署：Ollama 路线</h2>
+        <p>三个现实理由让本地模型成为工程标配选项：数据不能出内网（合规）、调用量大了本地更便宜（成本）、离线环境要可用（可用性）。<strong>Ollama</strong> 是目前本地跑模型门槛最低的方式——一条命令拉起 OpenAI 兼容接口，你的 Agent 代码零改动切换。</p>
+        <pre data-lang="PYTHON"># 1) 安装后终端执行：ollama run qwen2.5:14b（首次自动拉取）
+# 2) 它默认监听 11434，且接口与 OpenAI SDK 兼容：
+from openai import OpenAI
+
+client = OpenAI(base_url='http://localhost:11434/v1', api_key='ollama')
+
+resp = client.chat.completions.create(
+    model='qwen2.5:14b',
+    messages=[{'role': 'user', 'content': '用一句话解释什么是 Agent'}],
+    temperature=0.2,
+)
+print(resp.choices[0].message.content)
+
+# 关键：base_url 做成配置项，本地/云端同一套 Agent 代码
+# 显存参考（QLoRA 之外的推理侧）：7B 约需 6-8GB；14B 约需 12-16GB；32B 约需 24GB+</pre>
+        <pre data-lang="TYPESCRIPT">// TS 侧同样切 base_url 即可，无需改 Agent 逻辑
+import OpenAI from 'openai';
+
+const client = new OpenAI({
+  baseURL: 'http://localhost:11434/v1',
+  apiKey: 'ollama',   // 占位，本地服务不校验
+});
+
+const resp = await client.chat.completions.create({
+  model: 'qwen2.5:14b',
+  messages: [{ role: 'user', content: '用一句话解释什么是 Agent' }],
+  temperature: 0.2,
+});
+console.log(resp.choices[0].message.content);</pre>
+        <p>落地时按任务难度分层选模型（见附录 B 的分级表）：<strong>分类、抽取、改写</strong>这类结构化小任务用 7B–14B 足够，且可以批量并发；<strong>规划、复杂推理</strong>仍建议旗舰 API，或 32B 量级本地模型；中间再加一层<strong>路由</strong>——默认本地小模型，检测到「低置信/复杂意图」时升级到云端旗舰（附录 B 有完整的双语言路由实现）。另外注意：本地模型没有 API 侧的内容安全审核，第 11 章的输入输出过滤必须由你的应用层兜住。</p>
 <h2>本章产出：带成本仪表板的 Agent 运行时（双语言）</h2>
         <p>下面是一个最小运行时，演示流式输出、并行工具调用、成本统计。</p>
 

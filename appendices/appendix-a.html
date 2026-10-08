@@ -12,7 +12,7 @@
   <nav class="sidebar">
     <div class="sidebar__brand">
       <h2>AI Agent<br>权威指南</h2>
-      <span class="sidebar__version">v1.1 · 内容升级</span>
+      <span class="sidebar__version">v1.2 · 实战强化</span>
     </div>
     <ul class="sidebar__nav">
       <li><a href="./" class="nav-item">序章</a></li>
@@ -208,11 +208,31 @@ async function summarize(client: LLMClient, text: string) {
         </table>
         <p>结论：跑分用来建「候选短名单」（3 个以内），最终选型永远用你自己的 20 条 case 跑一遍。<strong>框架的 API 手感、调试体验、团队技术栈匹配度，权重高于任何公开跑分。</strong></p>
 
+<h2>框架地图：三个档位，别混着比</h2>
+        <p>市面上的 Agent 框架/平台看似有几十个，按「抽象层次」分只有三档。选型的第一步是想清楚自己在哪一档，跨档比较是选型最常见的时间浪费：</p>
+        <table class="table">
+          <thead><tr><th>档位</th><th>代表</th><th>你在做什么</th><th>什么时候选它</th></tr></thead>
+          <tbody>
+            <tr><td rowspan="3">应用平台档（低代码）</td><td>Coze / Dify / 阿里百炼</td><td>画布上拖工作流，配知识库</td><td>业务快速验证、无工程人力、接受平台约束</td></tr>
+            <tr><td>n8n / Zapier Agents</td><td>连接 SaaS 做自动化编排</td><td>流程以「连接现有系统」为主，智能成分低</td></tr>
+            <tr><td>AgentRadar 类平台</td><td>面向运营的对话机器人</td><td>纯对话场景，无复杂工具链</td></tr>
+            <tr><td rowspan="3">编排框架档（代码）</td><td>LangGraph / CrewAI / AutoGen</td><td>写代码组织多步流程与多 Agent</td><td>要流程可控、要测试、要私有化部署</td></tr>
+            <tr><td>LlamaIndex / Haystack</td><td>组织检索与数据管道</td><td>核心是 RAG 而非复杂决策</td></tr>
+            <tr><td>Mastra / Vercel AI SDK</td><td>TS 全栈的 Agent 编排</td><td>团队是 Node 技术栈</td></tr>
+            <tr><td rowspan="3">厂商 SDK 档（托管）</td><td>OpenAI Agents SDK / Claude Agent SDK</td><td>用官方 SDK 调托管能力</td><td>深度绑定单一厂商、要最快用上官方新特性</td></tr>
+            <tr><td>MCP 生态工具</td><td>标准化工具供给</td><td>工具要在多个 Agent/宿主间复用</td></tr>
+            <tr><td>开源 Agent 产品</td><td>部署即用的完整产品</td><td>通用需求（客服/问答）且不想开发</td></tr>
+          </tbody>
+        </table>
+        <div class="goals">
+          <p><strong>档位迁移策略</strong>：应用平台档验证价值 → 编排框架档接管核心流程 → 厂商 SDK 当补充能力。迁移时先固化「输入输出 schema」再换实现，这是第 13 章集成思路的具体应用。永远不要在低代码画布里实现核心算法——那不是平台的设计意图。</p>
+        </div>
 <h2>本章产出</h2>
         <ul>
           <li>八个框架六维对比表。</li>
           <li>六步选型决策树。</li>
           <li>防绑定三纪律 + 可直接套用的 LLM 适配层双语言实现。</li>
+          <li>三档框架地图（应用平台 / 编排框架 / 厂商 SDK）与档位迁移策略。</li>
         </ul>
 
         <div class="chapter__nav">

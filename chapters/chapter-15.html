@@ -12,7 +12,7 @@
   <nav class="sidebar">
     <div class="sidebar__brand">
       <h2>AI Agent<br>权威指南</h2>
-      <span class="sidebar__version">v1.1 · 内容升级</span>
+      <span class="sidebar__version">v1.2 · 实战强化</span>
     </div>
         <ul class="sidebar__nav">
       <li><a href="./" class="nav-item">序章</a></li>
@@ -147,6 +147,18 @@
           </ol>
         </div>
 
+<h2>AI 编程工具：Agent 最早规模化的战场</h2>
+        <p>编程之所以成为 Agent 第一个真正规模化的领域，靠的不是模型会写代码，而是<strong>代码有现成的自动验证器</strong>——编译器、测试、类型检查、lint。Agent 写完代码，测试一跑就知道对不对，反馈回路是毫秒级且客观的。这也解释了为什么通用 Agent 更难：没有验证器的领域，Agent 连「自己做完了没有」都不知道。</p>
+        <p>实践层面，把 Claude Code / Cursor 这类工具用好， patterns 高度一致：</p>
+        <ul>
+          <li><strong>给地图，不给指令</strong>：让 Agent 先读 README 和目录结构再动手，比一句「修复 bug」有效十倍。上下文里有仓库地图，它就不用瞎猜架构。</li>
+          <li><strong>Skills / 规则文件沉淀团队知识</strong>：把「我们提交前必须跑哪些检查」「API 返回体统一包 ApiResponse」这类规范写成项目级规则文件（如 CLAUDE.md / .cursor/rules），让 Agent 每次自动带上——这是把个人经验资产化成团队基础设施的过程，也是第 4 章 Agent Skills 模式在编程场景的具体形态。</li>
+          <li><strong>小步提交，验证后合并</strong>：每个改动都按「改完 → 跑测试 → 看 diff → 提交」的小循环走。让 Agent 一次性扛 10 个文件的改动，出问题你根本没法 review。</li>
+          <li><strong>危险操作必须人审</strong>：删文件、改数据库 schema、push 代码——这三个动作永远挂人工确认，对应第 11 章的 danger_level 分级。</li>
+        </ul>
+        <div class="goals">
+          <p><strong>反模式提醒</strong>：① 别让 Agent 在没跑通测试的仓库里改代码——先确保测试基线是绿的，否则你分不清是谁弄坏的；② 别把 API Key 写进它生成的项目文件；③ 长时间任务（重构、迁移）一定要它定期汇报进度，别闷头跑 40 分钟最后交个跑不起来的东西。</p>
+        </div>
 <h2>本章产出：研发助手的工具注册表与权限控制器（双语言）</h2>
         <p>以下示例展示研发助手的核心工具注册和只读/写权限检查。</p>
 

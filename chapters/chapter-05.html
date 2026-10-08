@@ -12,7 +12,7 @@
   <nav class="sidebar">
     <div class="sidebar__brand">
       <h2>AI Agent<br>权威指南</h2>
-      <span class="sidebar__version">v1.1 · 内容升级</span>
+      <span class="sidebar__version">v1.2 · 实战强化</span>
     </div>
         <ul class="sidebar__nav">
       <li><a href="./" class="nav-item">序章</a></li>
@@ -122,7 +122,61 @@
         </ul>
         <p>预算不是硬上限，而是<strong>软约束 + 人工可配置</strong>。生产系统应该暴露这些参数给运营者，让不同任务类型（如客服 vs 研发）使用不同预算档位。</p>
 
-        <h2>本章产出：带重规划的 ToT 任务执行器（双语言）</h2>
+        <h2>子智能体与中断恢复</h2>
+        <p>单 Agent 扛不住复杂任务的典型信号：上下文被多线程任务搅乱、一个分支失败污染整个会话、任务跑到一半没法保存进度。<strong>子智能体</strong>（sub-agent）模式为此而生：主 Agent 只做规划和分发，把每个子任务连同<strong>独立上下文窗口</strong>派发给子 Agent 执行，子 Agent 只把结论带回主会话——相当于给主线任务做了「上下文隔离」。</p>
+        <pre data-lang="PYTHON"># 主 Agent 派发 + 子 Agent 独立上下文（结构示意）
+from dataclasses import dataclass, field
+
+@dataclass
+class SubTask:
+    goal: str
+    tools: list
+    context: dict = field(default_factory=dict)  # 只带必要信息，不带全部历史
+
+def run_subagent(task: SubTask, max_steps: int = 15) -> str:
+    # 子 Agent 有自己的 messages 列表：主线聊了 50 轮也污染不到这里
+    messages = [{'role': 'system', 'content': build_prompt(task.tools)},
+                {'role': 'user', 'content': task.goal}]
+    for _ in range(max_steps):
+        action = llm(messages)                       # 思考 + 决定调用
+        if action.done:
+            return action.final_answer               # 只把结论带回主线
+        observation = dispatch(task.tools, action)   # 执行工具
+        messages.append(observation)
+    return '子任务未在预算内完成，标记失败并回报已确认的部分结论。'
+
+def main_agent(user_goal: str):
+    plan = llm_plan(user_goal)                       # 拆成 3 个子任务
+    results = [run_subagent(t) for t in plan.tasks]  # 可并行
+    return synthesize(user_goal, results)</pre>
+        <pre data-lang="TYPESCRIPT">// TS 侧同构实现：子智能体 + 上下文隔离
+interface SubTask {
+  goal: string;
+  tools: ToolDef[];
+  context?: Record<string, unknown>;
+}
+
+async function runSubagent(task: SubTask, maxSteps = 15): Promise<string> {
+  // 每个子任务独立的 messages：主线 50 轮历史不会污染这里
+  const messages: Message[] = [
+    { role: 'system', content: buildPrompt(task.tools) },
+    { role: 'user', content: task.goal },
+  ];
+  for (let i = 0; i < maxSteps; i++) {
+    const action = await llm(messages);
+    if (action.done) return action.finalAnswer!;      // 只把结论带回主线
+    messages.push(await dispatch(task.tools, action));
+  }
+  return '子任务未在预算内完成，标记失败并回报已确认的部分结论。';
+}
+
+async function mainAgent(userGoal: string): Promise<string> {
+  const plan = await llmPlan(userGoal);
+  const results = await Promise.all(plan.tasks.map((t) => runSubagent(t)));
+  return synthesize(userGoal, results);
+}</pre>
+        <p>与之配套的是<strong>中断恢复</strong>（checkpoint）：长任务必须把「当前计划、已完成的步骤、中间产物」持久化，崩溃后能从断点续跑而不是从头再来。两类实现思路——<strong>框架托管</strong>：LangGraph 用 checkpointer 自动在图节点边界保存状态，原生支持 interrupt / resume，适合图编排场景；<strong>自研轻量</strong>：自己定义 <code>TaskState</code>（plan + done_steps + artifacts），每步结束落库，恢复时重新装配。判定标准很简单：<strong>任务超过 5 分钟或花费超过 1 块钱，就必须有断点续跑</strong>，否则一次 API 抖动就全部重来，成本和体验双输。</p>
+<h2>本章产出：带重规划的 ToT 任务执行器（双语言）</h2>
         <p>下面是一个简化但可运行的 ToT 执行器。核心逻辑：用 LLM 评估每个 thought 的可行性，选择最佳分支继续展开；执行失败时触发重规划。</p>
 
         <h3>Python 版本</h3>

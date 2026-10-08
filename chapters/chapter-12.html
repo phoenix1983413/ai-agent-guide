@@ -12,7 +12,7 @@
   <nav class="sidebar">
     <div class="sidebar__brand">
       <h2>AI Agent<br>权威指南</h2>
-      <span class="sidebar__version">v1.1 · 内容升级</span>
+      <span class="sidebar__version">v1.2 · 实战强化</span>
     </div>
         <ul class="sidebar__nav">
       <li><a href="./" class="nav-item">序章</a></li>
@@ -137,6 +137,25 @@
           </ol>
         </div>
 
+<h2>微调入门：什么时候该动，什么时候是浪费</h2>
+        <p>先给结论：<strong>90% 的 Agent 问题不该用微调解决</strong>。微调改变的是模型的「默认行为分布」，它治不了知识不足（那是 RAG 的领域）、治不了工具不会用（那是提示词和示例的领域）、治不了流程错误（那是架构的领域）。微调真正对症的是三类问题：</p>
+        <ol>
+          <li><strong>风格/格式的顽固偏离</strong>：怎么提示都不肯按你的 JSON 契约输出，或者文风必须统一（客服话术、公文腔）——少量数据（几百到几千条）就能扳过来。</li>
+          <li><strong>领域术语与意图理解</strong>：医疗、法律、工业领域的专有表达，通用模型理解吃力，且你没那么多 token 天天在提示词里教。</li>
+          <li><strong>端侧/低成本部署</strong>：把小模型（7B–14B）用领域数据 SFT 到「够用」，省下每次调旗舰 API 的费用——这时微调是<strong>成本优化手段</strong>，不是能力手段。</li>
+        </ol>
+        <p>技术上，入门路线已经极度成熟，不需要从零训：用 <strong>LLaMA-Factory</strong> 这类开源框架，准备几千条「指令-回答」数据（Alpaca/ShareGPT 格式），选 LoRA/QLoRA 微调方式，一张 24GB 显卡就能跑通全流程。关键是记住显存账：</p>
+        <table class="table">
+          <thead><tr><th>微调方式</th><th>原理</th><th>显存需求（7B 模型，参考）</th><th>适合谁</th></tr></thead>
+          <tbody>
+            <tr><td>全参数微调</td><td>更新全部权重</td><td>百 GB 级（多卡）</td><td>有算力且有大规模高质量数据</td></tr>
+            <tr><td>LoRA</td><td>只训练低秩旁路矩阵</td><td>20–30 GB</td><td>单卡工作室的主流选择</td></tr>
+            <tr><td>QLoRA</td><td>4-bit 量化底座 + LoRA</td><td>10–16 GB</td><td>消费级显卡（RTX 3060+）</td></tr>
+          </tbody>
+        </table>
+        <div class="goals">
+          <p><strong>微调前后的红线</strong>：① 微调<strong>不会让模型学会它没见过的事实</strong>——知识类需求先 RAG，微调只用来「学会怎么用」；② 微调后必须跑一遍能力回归（通用问答、安全拒答），防止「学会新风格、忘了怎么拒绝」；③ 数据质量 &gt; 数据数量，几千条精心清洗的 &gt; 几万条噪声数据，这是所有微调实践里重复最多的教训。评估指标直接用第 9 章的评测框架，别自造。</p>
+        </div>
 <h2>本章产出：带反馈闭环的 Agent 自迭代框架（双语言）</h2>
 
         <h3>Python 版本</h3>

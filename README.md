@@ -82,6 +82,7 @@ ai-agent-guide/
 | v0.2 | 全 21 章 + 4 个附录骨架完成 |
 | v1.0 | 内容补厚：Part 0 与第 11/19/20/21 章扩至每章 200+ 行正文并补齐双语言代码；附录 A–D 扩充（8 框架对比 / 模型路由器 / 45 条术语 / 学习路径）；27 页侧边栏统一为完整目录并修复 active 高亮 |
 | v1.1 | 参考两本开源书籍全面升级（yeasy《智能体AI权威指南》+ 李博杰《深入理解AI Agent》）：每章新增「学习目标 + 章节地图 + 动手实验」结构；新增认知层级、观察/动作空间、Model–Harness、上下文工程四操作、图记忆、Agentic RAG、Agent Skills、Computer Use、Reflexion、推理预算、社会模拟、博弈论、涌现边界、Agentic UX、间接注入防御、AgentBench、轨迹分析、故障模式、持续学习、集成反模式、架构陷阱、Agentic Coding、NL2SQL 校验链、HITL、隐私三层分级、协议选型决策、EU AI Act 风险分级映射、实验到生产路线图等专题 |
+| v1.2 | 参考三本实战书籍再升级（didilili《AI智能体实战速成指南》+ xwh630《AI Agent实战手册》+ zshyc《从零学习大模型&AI Agent》）：首页增「30 分钟跑通第一个 Agent」路径与五本参考书致谢表；Part 0 补低代码平台 vs 代码开发的路线三问判据；第 1 章 Agent 五组件速记；第 2 章 LCEL 声明式管道与输出解析器；第 3 章向量数据库选型表（pgvector/Qdrant/Milvus/ES）+ Redis 会话两级历史；第 4 章工具设计三反模式；第 5 章子智能体与中断恢复（checkpoint）；第 6 章 CrewAI/AutoGen/LangGraph 三框架协作对照；第 8 章消息模板工程；第 12 章微调入门（LLaMA-Factory、LoRA/QLoRA 显存账）；第 13 章低代码平台 API 化集成（Dify/Coze 调用）；第 14 章 Ollama 本地部署；第 15 章 AI 编程工具实践模式；第 16 章电商问数完整管线（六步 + RRF 融合）；附录 A 三档框架地图、附录 B 开源模型四级分级、附录 C 高频术语中英对照、附录 D 三本实战参考书 + 开源项目地图与分级学习路径 |
 
 ## 本地预览
 

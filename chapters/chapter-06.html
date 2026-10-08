@@ -12,7 +12,7 @@
   <nav class="sidebar">
     <div class="sidebar__brand">
       <h2>AI Agent<br>权威指南</h2>
-      <span class="sidebar__version">v1.1 · 内容升级</span>
+      <span class="sidebar__version">v1.2 · 实战强化</span>
     </div>
         <ul class="sidebar__nav">
       <li><a href="./" class="nav-item">序章</a></li>
@@ -170,6 +170,20 @@
           </ol>
         </div>
 
+<h2>三大框架的多 Agent 实现对照</h2>
+        <p>多智能体不是玄学，落到框架上是三种截然不同的抽象。选框架前先选隐喻，别反过来：</p>
+        <table class="table">
+          <thead><tr><th>框架</th><th>核心隐喻</th><th>协作方式</th><th>状态管理</th><th>适合场景</th></tr></thead>
+          <tbody>
+            <tr><td>CrewAI</td><td>剧组：角色 + 任务</td><td>顺序/层级委派，成员各管一段</td><td>框架隐式管理</td><td>内容生产流水线（研究→写作→审校）</td></tr>
+            <tr><td>AutoGen</td><td>群聊：多个对话者</td><td>Agent 之间互相发消息，可引入 human</td><td>对话历史即状态</td><td>对话式协作、代码执行评审、探索性任务</td></tr>
+            <tr><td>LangGraph</td><td>状态机：图节点 + 边</td><td>显式定义流转（条件分支、循环、并行）</td><td>显式 State + checkpointer</td><td>流程确定的生产系统、要中断恢复/人在环</td></tr>
+          </tbody>
+        </table>
+        <p>三者的工程哲学差异比 API 差异更重要：<strong>CrewAI 用角色掩盖控制流</strong>（写起来爽，但任务图不可视化，出问题难调试）；<strong>AutoGen 用对话统一一切</strong>（灵活，但链路长时 token 消耗和延迟都高）；<strong>LangGraph 把控制流显式化成图</strong>（学习曲线最陡，但是唯一能画出来、能单测每个节点、能持久化恢复的）。生产环境我的建议：原型期用 CrewAI/AutoGen 快速验证协作模式，定型后用 LangGraph 重写关键路径——和第 13 章的平台策略一样，<strong>先用对的隐喻想清楚，再用对的框架落地</strong>。</p>
+        <div class="goals">
+          <p><strong>什么时候不要多 Agent</strong>：单个 Agent 顺序执行 30 秒内能完成的任务，上多 Agent 是净亏——协调开销、上下文拼接、错误传播都翻倍。多 Agent 的正当理由只有三个：任务真的可并行、需要不同领域的独立上下文隔离、需要不同角色互相制衡（如代码生成 vs 代码评审）。为了「看起来先进」拆多 Agent，是最常见的过度设计。</p>
+        </div>
 <h2>本章产出：三种协作模式的代码骨架（双语言）</h2>
         <p>下面实现一个最小消息总线，并用它演示管道、辩论、层次三种模式。</p>
 

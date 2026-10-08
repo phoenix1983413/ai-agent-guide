@@ -12,7 +12,7 @@
   <nav class="sidebar">
     <div class="sidebar__brand">
       <h2>AI Agent<br>权威指南</h2>
-      <span class="sidebar__version">v1.1 · 内容升级</span>
+      <span class="sidebar__version">v1.2 · 实战强化</span>
     </div>
         <ul class="sidebar__nav">
       <li><a href="./" class="nav-item">序章</a></li>
@@ -127,6 +127,72 @@
           </ol>
         </div>
 
+<h2>完整实战：电商问数智能体</h2>
+        <p>第 16 章前面讲的 NL2SQL 三层校验是骨架，这里给一个企业级问数项目的完整管线——这是参考实战项目「电商问数」整理出的生产结构，覆盖从用户提问到返回数据的全链路：</p>
+        <h3>整体管线</h3>
+        <pre data-lang="PYTHON"># 电商问数六步管线（每步的失败都有明确的降级路径）
+# 用户问题 → ①关键词/实体抽取 → ②多路召回(字段+指标+历史SQL) → ③上下文组装
+#          → ④SQL 生成 → ⑤三层校验 → ⑥执行+可视化建议
+
+# ②多路召回：关键词 BM25 召回表字段、向量召回指标定义、历史 SQL 库召回相似问题
+def recall(question: str, top_k: int = 5):
+    kws = extract_keywords(question)                 # 时间/维度/指标/地域
+    by_bm25   = es.search('field_dict', kws)         # ES 全文：字段名与同义词
+    by_vector = qdrant.search(question, top_k)       # Qdrant 向量：指标口径定义
+    by_history= es.search('sql_library', question)   # 历史 SQL 库：同类问题的成例
+    return rrf_fuse([by_bm25, by_vector, by_history])# RRF 融合三路结果
+
+# ④⑤SQL 生成与三层校验（第 16 章已展开，此处总装）
+def ask(question: str):
+    ctx = recall(question)
+    sql = llm_generate_sql(question, ctx)            # 生成阶段
+    sql = lint_semantic(sql)                          # 校验层1：只读/无 DROP/限定分区键
+    rows = dry_run(sql)                               # 校验层2：EXPLAIN 看扫描量，超限打回
+    if exceed_scan_limit(rows): raise ScanTooLarge()
+    data = execute(sql, timeout=10)                   # 执行层：只读账号 + 超时 + 行数上限
+    # 校验层3：结果合理性（环比波动>300% 交给 Agent 二次确认口径）
+    return render(data, suggest_chart(question))</pre>
+        <pre data-lang="TYPESCRIPT">// TS 侧同构管线：六步 + RRF 融合
+interface RecallHit { id: string; score: number; source: 'bm25' | 'vector' | 'history' }
+
+// RRF（倒数排名融合）：不比分数的绝对值，只比各路排名——解决多路分数不可比问题
+function rrfFuse(lanes: RecallHit[][], k = 60): RecallHit[] {
+  const fused = new Map<string, RecallHit>();
+  lanes.forEach((lane) =>
+    lane.forEach((hit, rank) => {
+      const prev = fused.get(hit.id);
+      const gain = 1 / (k + rank + 1);
+      fused.set(hit.id, prev ? { ...prev, score: prev.score + gain } : { ...hit, score: gain });
+    })
+  );
+  return [...fused.values()].sort((a, b) => b.score - a.score);
+}
+
+async function ask(question: string) {
+  const lanes = await Promise.all([
+    esSearch('field_dict', extractKeywords(question)),
+    qdrantSearch(question, 5),
+    esSearch('sql_library', question),
+  ]);
+  const ctx = rrfFuse(lanes);
+  const sql = await llmGenerateSql(question, ctx);
+  lintSemantic(sql);                       // 只读 / 无 DROP / 限定分区键
+  await dryRun(sql);                       // EXPLAIN 看扫描量
+  return render(await execute(sql, 10_000));
+}</pre>
+        <h3>生产要点</h3>
+        <table class="table">
+          <thead><tr><th>环节</th><th>关键设计</th><th>踩坑教训</th></tr></thead>
+          <tbody>
+            <tr><td>元数据知识库</td><td>表/字段/指标口径同步进 ES + Qdrant，带同义词字典（如「GMV=成交总额」）</td><td>不同部门对同一指标口径不一——知识库必须带「口径负责人」</td></tr>
+            <tr><td>多路召回</td><td>BM25 抓专名、向量抓语义、历史 SQL 抓成例，RRF 融合</td><td>只调一路必漏召：编号类查询只有 BM25 能中</td></tr>
+            <tr><td>SQL 生成</td><td>提示词里带「相关字段列表 + 指标定义 + 相似历史 SQL」三段上下文</td><td>不给字段列表，模型会按字面意思编表名</td></tr>
+            <tr><td>执行安全</td><td>只读账号、行数上限、10 秒超时、分区键强制</td><td>全表扫描一次能打挂 AnaliticDB——EXPLAIN 前置拦截</td></tr>
+            <tr><td>结果呈现</td><td>按问题意图自动建议图表类型（趋势→折线，占比→饼图）</td><td>返回 5000 行原始数据给用户等于没返回</td></tr>
+            <tr><td>接口层</td><td>FastAPI 暴露 /ask，依赖组装（检索器、LLM、执行器）集中注入</td><td>把 DB 连接写在处理函数里，测试根本没法写</td></tr>
+          </tbody>
+        </table>
+        <p>这个项目的完整实现还包括「字段与指标检索能力构建」「SQL 生成前的信息过滤与补全」等细节模块，但抓住了上面六步和四层校验，就抓住了 90% 的生产质量。<strong>问数类 Agent 的竞争不在模型，在元数据质量和链路校验。</strong></p>
 <h2>本章产出：数据分析 Agent 的最小实现（双语言）</h2>
 
         <h3>Python 版本</h3>

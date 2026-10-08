@@ -12,7 +12,7 @@
   <nav class="sidebar">
     <div class="sidebar__brand">
       <h2>AI Agent<br>权威指南</h2>
-      <span class="sidebar__version">v1.1 · 内容升级</span>
+      <span class="sidebar__version">v1.2 · 实战强化</span>
     </div>
         <ul class="sidebar__nav">
       <li><a href="./" class="nav-item">序章</a></li>
@@ -136,6 +136,50 @@
           </ol>
         </div>
 
+<h2>把低代码平台当外部系统集成</h2>
+        <p>Part 0 说过「低代码验证 → 代码重写」的务实路线，但两条路线之间还有一条少有人走的桥：<strong>平台工作流 API 化</strong>。Dify 和 Coze 都提供 HTTP/SDK 接口调用已发布的工作流或 Agent——意味着你可以在自研系统里，把平台当作一个「业务部门自己维护的工具」来集成：业务改流程不用发版，你的系统负责鉴权、审计、兜底。</p>
+        <pre data-lang="PYTHON"># 调用 Dify 已发布的工作流（结构化入参 + 流式/阻塞两种模式）
+import requests
+
+def call_dify_workflow(inputs: dict, user: str) -> dict:
+    resp = requests.post(
+        'https://api.dify.ai/v1/workflows/run',   # 私有化部署时换成内网地址
+        headers={'Authorization': 'Bearer <你的 App API Key>'},
+        json={
+            'inputs': inputs,
+            'response_mode': 'blocking',   # 'streaming' 为流式
+            'user': user,                  # 租户/用户标识，用于平台侧统计
+        },
+        timeout=30,
+    )
+    resp.raise_for_status()
+    data = resp.json()
+    return {
+        'output': data['data']['outputs'],   # 工作流定义好的输出变量
+        'run_id': data['workflow_run_id'],   # 一定要落日志：审计与排障全靠它
+    }</pre>
+        <pre data-lang="TYPESCRIPT">// 调用 Coze 已发布的 Bot / 工作流（v3 API）
+async function callCozeBot(prompt: string, userId: string) {
+  const resp = await fetch('https://api.coze.cn/v3/chat', {
+    method: 'POST',
+    headers: {
+      Authorization: 'Bearer <你的 PAT>',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      bot_id: '<Bot ID>',
+      user_id: userId,
+      additional_messages: [{ role: 'user', content: prompt, content_type: 'text' }],
+      stream: false,
+    }),
+  });
+  const data = await resp.json();
+  return {
+    answer: data.messages?.at(-1)?.content ?? '',
+    conversationId: data.conversation_id,  // 同样要落日志
+  };
+}</pre>
+        <p>集成时有四个工程要点：<strong>① 平台侧也可能挂</strong>——外面必须包超时、重试、降级（平台挂时切到备用模型或缓存话术）；<strong>② 计费是两头的</strong>——平台订阅费 + 模型 token 费，成本核算要合并进第 14 章的仪表板；<strong>③ 数据边界要画清楚</strong>——发到公有云平台的每一条输入都是数据出境，PII 场景先脱敏再发；<strong>④ 迁移预案</strong>——把输入输出 schema 在自己这边留档，平台涨价/停服时能快速切换。这套「外包工作流」模式特别适合：核心系统要合规可控，但需求变化快的边缘流程又想让业务自己维护。</p>
 <h2>本章产出：企业 IM + 知识库集成示例（双语言）</h2>
         <p>以下示例演示 Agent 如何接收企业 IM 消息、查询知识库、回复用户。</p>
 

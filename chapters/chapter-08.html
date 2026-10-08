@@ -12,7 +12,7 @@
   <nav class="sidebar">
     <div class="sidebar__brand">
       <h2>AI Agent<br>权威指南</h2>
-      <span class="sidebar__version">v1.1 · 内容升级</span>
+      <span class="sidebar__version">v1.2 · 实战强化</span>
     </div>
         <ul class="sidebar__nav">
       <li><a href="./" class="nav-item">序章</a></li>
@@ -139,6 +139,55 @@
           </ol>
         </div>
 
+<h2>消息模板工程：多角色分工与变量管理</h2>
+        <p>提示词不是一段话，是一个<strong>由多条角色消息组成的模板系统</strong>。工程上把常见的三类消息分开管理，各自的演化节奏不同：</p>
+        <ul>
+          <li><strong>System（人设与规则）</strong>：定义角色、能力边界、输出契约。变更频率低，但每次改动影响全局——必须版本化管理（Git + 变更说明）。</li>
+          <li><strong>Few-shot 示例（校准行为）</strong>：2–5 个「输入→期望输出」样例，用来固定格式和风格。它们是<strong>隐形的测试用例</strong>：示例变了，模型行为就变，所以示例集要和评测集联动更新。</li>
+          <li><strong>User/上下文（动态部分）</strong>：运行时拼装的内容——检索结果、对话历史、当前问题。这部分要做<strong>变量化 + 边界标记</strong>（例如用明显的分隔符包裹检索内容），既是防注入的第一道防线，也方便定位「模型为什么答错」。</li>
+        </ul>
+        <pre data-lang="PYTHON"># 模板变量化：提示词当代码管，禁止字符串硬拼
+# system 规则集中定义，变更走 Git，便于回归对比
+SYSTEM_RULES = '\n'.join([
+    '你是 {role} 助手。',
+    '规则：',
+    '1. 只依据 &lt;context&gt; 标签内的资料回答，资料不足就说不知道。',
+    '2. 涉及金额、日期的结论，必须引用资料中的原文。',
+    '3. 输出格式：先结论，后依据（不超过 3 条）。',
+])
+
+def build_messages(role, query, docs):
+    ctx = '\n'.join('&lt;doc id=%d&gt;%s&lt;/doc&gt;' % (i, d) for i, d in enumerate(docs))
+    return [
+        {'role': 'system', 'content': SYSTEM_RULES.format(role=role)},
+        {'role': 'user',   'content': '&lt;context&gt;\n%s\n&lt;/context&gt;\n\n问题：%s' % (ctx, query)},
+    ]
+
+# messages = build_messages('财报分析', 'Q3 营收增长主因？', docs)
+# 版本管理：SYSTEM_RULES 的每次改动配一条变更记录 + 评测集回归</pre>
+        <pre data-lang="TYPESCRIPT">// TS 模板：同样禁止字符串硬拼，变量集中在一个对象
+const SYSTEM_V2 = (vars: { role: string }) => `你是 ${vars.role} 助手。
+规则：
+1. 只依据 <context> 标签内的资料回答，资料不足就说不知道。
+2. 涉及金额、日期的结论，必须引用资料中的原文。
+3. 输出格式：先结论，后依据（不超过 3 条）。`;
+
+interface BuildArgs { role: string; query: string; docs: string[] }
+
+function buildMessages({ role, query, docs }: BuildArgs) {
+  const ctx = docs
+    .map((d, i) => `<doc id=${i}>${d}</doc>`)
+    .join('\n');
+  return [
+    { role: 'system', content: SYSTEM_V2({ role }) },
+    { role: 'user', content: `<context>
+${ctx}
+</context>
+
+问题：${query}` },
+  ];
+}</pre>
+        <p>配套纪律：<strong>一条变更一条记录</strong>——每次改模板都写清「改了什么、为什么、期望哪个评测指标动」；<strong>上下文必须打标签</strong>——模型分不清「资料」和「指令」是间接注入的根源（第 8 章注入防御的基础）；<strong>示例集是回归资产</strong>——换模型版本时先跑示例集再上线。</p>
 <h2>本章产出：提示词仓库结构与注入防御模板（双语言）</h2>
 
         <h3>Python 版本</h3>

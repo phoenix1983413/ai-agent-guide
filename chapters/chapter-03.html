@@ -12,7 +12,7 @@
   <nav class="sidebar">
     <div class="sidebar__brand">
       <h2>AI Agent<br>权威指南</h2>
-      <span class="sidebar__version">v1.1 · 内容升级</span>
+      <span class="sidebar__version">v1.2 · 实战强化</span>
     </div>
         <ul class="sidebar__nav">
       <li><a href="./" class="nav-item">序章</a></li>
@@ -267,6 +267,70 @@ console.log(mgr.build("Q3 营销预算还剩多少？",
           </ol>
         </div>
 
+<h2>向量数据库选型：别急着上专用库</h2>
+        <p>选向量库的第一原则：<strong>先看你的数据量级和团队技术栈，再看性能跑分</strong>。日写入十万级以下、又没有专职运维，PostgreSQL 的 pgvector 扩展或 Redis 的向量能力往往是综合成本最低的选择——你少维护一套系统。数据到千万级、QPS 要求高，再考虑专用向量库。</p>
+        <table class="table">
+          <thead><tr><th>方案</th><th>适用量级</th><th>部署成本</th><th>检索特性</th><th>典型场景</th></tr></thead>
+          <tbody>
+            <tr><td>pgvector（PostgreSQL）</td><td>百万级以下</td><td>极低（一个扩展）</td><td>HNSW/IVFFlat，支持标量过滤混查</td><td>已有 PG 的团队首选</td></tr>
+            <tr><td>Redis（向量 + 会话）</td><td>百万级以下</td><td>低</td><td>内存级延迟，会话与向量同库</td><td>高频小数据、需低延迟</td></tr>
+            <tr><td>Qdrant</td><td>千万级</td><td>中（Rust 单机/docker）</td><td>标量过滤强，payload 过滤优秀</td><td>过滤条件复杂的检索</td></tr>
+            <tr><td>Milvus</td><td>亿级</td><td>高（分布式组件多）</td><td>多索引、多路召回、GPU 加速</td><td>大规模生产检索</td></tr>
+            <tr><td>Elasticsearch</td><td>千万级</td><td>中</td><td>向量 + 全文 BM25 混合检索原生支持</td><td>已有 ES、要混排</td></tr>
+            <tr><td>Chroma</td><td>原型/小规模</td><td>极低（嵌入式）</td><td>开箱即用，功能精简</td><td>本地实验、Demo</td></tr>
+          </tbody>
+        </table>
+        <div class="goals">
+          <p><strong>混合检索是生产标配</strong>：纯向量检索会漏掉专有名词、编号、型号这类「精确匹配才靠谱」的查询。生产系统普遍采用「BM25 全文 + 向量语义」双路召回，再用 RRF（倒数排名融合）或重排模型合并结果——第 16 章的电商问数项目就是这么做的。只调一路向量的 RAG，在企业真实查询上通常漏召严重。</p>
+        </div>
+
+        <h2>会话历史的工程细节：Redis 不是万能与不能</h2>
+        <p>把对话历史丢进 Redis 是常见做法，但有三件事必须显式设计，否则线上一定出问题：</p>
+        <ul>
+          <li><strong>Key 设计与 TTL</strong>：<code>chat:{tenant_id}:{session_id}</code>，租户前缀保证多租户隔离；TTL 按业务设（客服场景常 7–30 天），别让历史无限堆积——它同时是成本和隐私负债。</li>
+          <li><strong>序列化格式</strong>：存结构化消息数组（role/content/tool_calls 完整保留），不要存拼好的 prompt 字符串——否则后续压缩、裁剪、统计都没法做。</li>
+          <li><strong>滑动窗口 + 摘要的两级策略</strong>：Redis 里只保留最近 N 条原文，更早的滚动压缩成一段摘要（第 5 章上下文工程的 Compress 操作）。窗口大小 N 和模型上下文预算联动，N 不是拍脑袋定的。</li>
+        </ul>
+        <pre data-lang="PYTHON"># 两级历史：Redis 原文窗口 + 滚动摘要（伪代码，替换为你的 redis 客户端）
+import json, redis
+
+r = redis.Redis(host='localhost', port=6379)
+
+def key(sid): return 'chat:%s' % sid
+
+def append_turn(sid, role, content):
+    msg = json.dumps({'role': role, 'content': content}, ensure_ascii=False)
+    r.rpush(key(sid), msg)
+    r.expire(key(sid), 7 * 86400)
+    # 超过 40 条时，把最旧的 20 条滚动进摘要，只保留最近 20 条原文
+    if r.llen(key(sid)) > 40:
+        old = [json.loads(m) for m in r.lrange(key(sid), 0, 19)]
+        summary = summarize(old)  # 调用 LLM 压缩
+        r.delete(key(sid))
+        r.rpush(key(sid), json.dumps({'role': 'system', 'content': '前情摘要：' + summary}, ensure_ascii=False))
+        for m in r.lrange(key(sid) + ':tmp', 20, -1):
+            r.rpush(key(sid), m)
+        r.delete(key(sid) + ':tmp')</pre>
+        <pre data-lang="TYPESCRIPT">// TS 侧同样的两级策略（ioredis）
+import Redis from 'ioredis';
+const r = new Redis();
+
+const key = (sid: string) => `chat:${sid}`;
+
+async function appendTurn(sid: string, role: string, content: string) {
+  await r.rpush(key(sid), JSON.stringify({ role, content }));
+  await r.expire(key(sid), 7 * 86400);
+  if ((await r.llen(key(sid))) > 40) {
+    // 取出最旧 20 条 → 摘要 → 重建列表（摘要 + 最近 20 条原文）
+    const old = (await r.lrange(key(sid), 0, 19)).map((m) => JSON.parse(m));
+    const summary = await summarize(old);
+    const recent = await r.lrange(key(sid), 20, -1);
+    await r.del(key(sid));
+    await r.rpush(key(sid), JSON.stringify({ role: 'system', content: `前情摘要：${summary}` }));
+    if (recent.length) await r.rpush(key(sid), ...recent);
+  }
+}</pre>
+        <p>注意这两个示例省略了并发写保护的细节（多轮并发时 Lua 脚本或分布式锁），生产实现请把「读出旧条 → 算摘要 → 重建列表」做成原子操作。</p>
 <h2>本章产出：最小双层记忆实现</h2>
         <p>一个同时具备「短期上下文 + 长期向量检索」的记忆模块。</p>
 

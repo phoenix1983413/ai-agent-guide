@@ -12,7 +12,7 @@
   <nav class="sidebar">
     <div class="sidebar__brand">
       <h2>AI Agent<br>权威指南</h2>
-      <span class="sidebar__version">v1.1 · 内容升级</span>
+      <span class="sidebar__version">v1.2 · 实战强化</span>
     </div>
         <ul class="sidebar__nav">
       <li><a href="./" class="nav-item">序章</a></li>
@@ -159,6 +159,45 @@ graph TD
           </ol>
         </div>
 
+<h2>声明式管道与输出解析器</h2>
+        <p>框架真正省掉的不是「写循环」，而是<strong>把「模型调用 → 解析 → 下一步」的组合方式声明化</strong>。LangChain 的 LCEL（LangChain Expression Language）是这条路线的代表：用管道符把若干可运行单元串成一条数据流，每个单元只关心输入输出类型，组合、并发、流式、重试全部由管道统一处理。</p>
+        <pre data-lang="PYTHON"># LCEL：声明式管道，读起来像函数组合
+from langchain_core.output_parsers import PydanticOutputParser
+from langchain_core.prompts import ChatPromptTemplate
+from pydantic import BaseModel, Field
+
+class Action(BaseModel):
+    thought: str = Field(description='推理过程')
+    tool: str = Field(description='要调用的工具名')
+    args: dict = Field(default_factory=dict)
+
+parser = PydanticOutputParser(pydantic_object=Action)
+prompt = ChatPromptTemplate.from_messages([
+    ('system', '你是任务规划器。{format_instructions}'),
+    ('user', '{task}'),
+]).partial(format_instructions=parser.get_format_instructions())
+
+# 串起来就是一条 Agent 单步：渲染提示词 → 调模型 → 解析成结构化对象
+chain = prompt | model | parser
+action = chain.invoke({'task': '查一下明天北京天气并决定是否带伞'})
+print(action.tool, action.args)</pre>
+        <pre data-lang="TYPESCRIPT">// TS 侧同样有声明式组合（RunnableSequence）
+import { ChatPromptTemplate } from '@langchain/core/prompts';
+import { z } from 'zod';
+
+const Action = z.object({
+  thought: z.string().describe('推理过程'),
+  tool: z.string().describe('要调用的工具名'),
+  args: z.record(z.any()).default({}),
+});
+
+const prompt = ChatPromptTemplate.fromMessages([
+  ['system', '你是任务规划器。请以 JSON 输出，字段：thought/tool/args'],
+  ['user', '{task}'],
+]);
+const chain = prompt.pipe(model).pipe(parser);
+const action = await chain.invoke({ task: '查一下明天北京天气并决定是否带伞' });</pre>
+        <p>这里最该学的是<strong>输出解析器</strong>这个模式本身，而不是某个框架的 API：Agent 的每一步都依赖结构化输出，而 LLM 天然爱「多说两句」。解析器的标准动作是三件套——<strong>约束格式</strong>（JSON mode / 格式说明写进提示词）、<strong>强类型校验</strong>（Pydantic / Zod）、<strong>失败自愈</strong>（校验不过就把错误信息喂回模型重试，通常 1–2 次内收敛）。把这三步做对，Agent 的健壮性立刻上一个台阶，这也是第 4 章工具调用的地基。</p>
 <h2>本章产出：通用架构骨架（双语言）</h2>
         <p>以下是一个最小但结构完整的 Agent 骨架，体现四层解耦。</p>
 

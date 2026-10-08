@@ -12,7 +12,7 @@
   <nav class="sidebar">
     <div class="sidebar__brand">
       <h2>AI Agent<br>权威指南</h2>
-      <span class="sidebar__version">v1.1 · 内容升级</span>
+      <span class="sidebar__version">v1.2 · 实战强化</span>
     </div>
     <ul class="sidebar__nav">
       <li><a href="./" class="nav-item">序章</a></li>
@@ -253,12 +253,27 @@ console.log(route("设计一个多智能体代码评审流程", 12, false));
         </table>
         <p>实用推论：① 工具调用总报语法错 → 找 SFT 强调工具格式的模型，而不是换更大的；② 单步都对但长任务跑偏 → 看 RL 阶段奖励是否含「过程效率」；③ 推理模型（o1/R1 类）把更多算力花在 RL 上，表现为「想得久」——按 5.6 节分档使用。</p>
 
+<h2>开源模型分级：按任务难度选尺寸</h2>
+        <p>本地/开源路线选型，先按「任务难度」定档，再按「显存预算」定尺寸——顺序反了就会要么性能不够、要么浪费卡。以 Qwen2.5 系列为例（其他开源系可类比）：</p>
+        <table class="table">
+          <thead><tr><th>任务难度</th><th>典型任务</th><th>推荐档位</th><th>推理显存（INT4 参考）</th><th>备注</th></tr></thead>
+          <tbody>
+            <tr><td>L1 结构化小任务</td><td>分类、抽取、改写、路由判断</td><td>3B–7B</td><td>3–6 GB</td><td>可高并发批量，成本最低</td></tr>
+            <tr><td>L2 日常对话问答</td><td>客服对答、文档总结</td><td>7B–14B</td><td>6–12 GB</td><td>性价比甜点区</td></tr>
+            <tr><td>L3 复杂推理</td><td>多步规划、代码生成</td><td>32B 起或云端旗舰</td><td>24 GB+</td><td>本地只能上量化，质量有损</td></tr>
+            <tr><td>微调训练</td><td>领域适配</td><td>LoRA / QLoRA（见第 12 章显存账）</td><td>10–30 GB</td><td>QLoRA 让 3060 也能训 7B</td></tr>
+          </tbody>
+        </table>
+        <div class="goals">
+          <p><strong>路由是标配不是选修</strong>：生产环境的标准结构是「L1/L2 任务走本地小模型，L3 或检测到困难时升级云端旗舰」——本附录前文的复杂度路由器就是干这个的。评估一个新开源模型行不行，用第 9 章的评测框架跑你自己的 20 条 case，别看公开跑分：通用跑分高不代表在你的领域任务上好，垂直领域里 7B 专用模型打赢 100B+ 通用模型是常事。</p>
+        </div>
 <h2>本章产出</h2>
         <ul>
           <li>7 款主流模型三维评分速查表（相对量级）。</li>
           <li>Agent 场景四个特需考察点。</li>
           <li>复杂度路由器双语言实现（含小模型失败自动升级兜底）。</li>
           <li>国内合规与部署要点。</li>
+          <li>开源模型四级分级表（任务难度 × 显存预算）与路由选型策略。</li>
         </ul>
 
         <div class="chapter__nav">

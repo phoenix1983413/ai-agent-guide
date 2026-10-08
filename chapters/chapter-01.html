@@ -12,7 +12,7 @@
   <nav class="sidebar">
     <div class="sidebar__brand">
       <h2>AI Agent<br>权威指南</h2>
-      <span class="sidebar__version">v1.1 · 内容升级</span>
+      <span class="sidebar__version">v1.2 · 实战强化</span>
     </div>
         <ul class="sidebar__nav">
       <li><a href="./" class="nav-item">序章</a></li>
@@ -203,6 +203,19 @@
           </ol>
         </div>
 
+<h2>Agent 五组件速记</h2>
+        <p>工程上把一个 Agent 拆开，永远是这五块。记住这个类比，面试和评审都用得上：</p>
+        <table class="table">
+          <thead><tr><th>组件</th><th>作用</th><th>类比</th><th>常见实现</th></tr></thead>
+          <tbody>
+            <tr><td><strong>LLM（大脑）</strong></td><td>理解、推理、生成</td><td>人的大脑</td><td>GPT / Claude / Qwen / DeepSeek，可本地可云端</td></tr>
+            <tr><td><strong>角色（Persona）</strong></td><td>划定专业领域与行为边界</td><td>职业身份</td><td>System Prompt</td></tr>
+            <tr><td><strong>工具集（Tools）</strong></td><td>调用外部能力</td><td>双手和工具</td><td>函数调用 / MCP / 代码执行</td></tr>
+            <tr><td><strong>记忆（Memory）</strong></td><td>短期对话历史 + 长期知识</td><td>记忆系统</td><td>上下文窗口 / 向量库 / Redis</td></tr>
+            <tr><td><strong>决策逻辑</strong></td><td>决定下一步做什么</td><td>决策中枢</td><td>ReAct / ToT 循环、规划器</td></tr>
+          </tbody>
+        </table>
+        <p>检查任何一个「Agent 项目靠不靠谱」，用这五条过一遍就够了：模型选型有没有理由（大脑）？系统提示词写没写清角色和禁区（角色）？工具是不是原子且带错误返回（工具）？上下文会不会无限膨胀（记忆）？有没有兜底——Agent 卡死时谁接管（决策逻辑）？五条里缺任何一条，项目后期都会以线上事故的形式补回来。</p>
 <h2>本章产出：最小 ReAct Agent（100 行）</h2>
         <p>以下是一个最简 Agent，用 ReAct（Reason + Act）循环实现。它能在「思考」和「行动」之间交替，直到找到答案。</p>
 

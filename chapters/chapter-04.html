@@ -12,7 +12,7 @@
   <nav class="sidebar">
     <div class="sidebar__brand">
       <h2>AI Agent<br>权威指南</h2>
-      <span class="sidebar__version">v1.1 · 内容升级</span>
+      <span class="sidebar__version">v1.2 · 实战强化</span>
     </div>
         <ul class="sidebar__nav">
       <li><a href="./" class="nav-item">序章</a></li>
@@ -175,6 +175,16 @@
           </ol>
         </div>
 
+<h2>工具设计的三个反模式</h2>
+        <p>看过大量 Agent 项目后，工具层的问题高度集中在这三种模式上。它们不会在 Demo 里暴露，只会在真实任务里持续掉链子：</p>
+        <ol>
+          <li><strong>工具泛滥</strong>：一次挂 50+ 个工具，模型选择准确率断崖式下跌。工程上的经验值是<strong>单个 Agent 常驻工具控制在 8–12 个</strong>，超出就分组（按业务域拆子 Agent，或用第 4 章 Skills 的渐进式披露按需加载）。工具越多，每个工具的「被选中概率」被稀释，还拖长 system prompt。</li>
+          <li><strong>描述含糊</strong>：参数名 <code>q</code>、说明「要查询的内容」——模型只能猜。好描述要写清：<strong>什么时候用这个工具</strong>（触发条件）、<strong>什么时候别用</strong>（与易混工具的边界）、<strong>参数格式</strong>（含示例值）、<strong>返回什么</strong>（成功与失败分别是什么结构）。把工具描述当 PRD 写，不当注释写。</li>
+          <li><strong>无幂等</strong>：写操作工具被 Agent 重试两次就重复下单、重复发邮件。所有 <code>create/send/pay</code> 类工具必须带<strong>幂等键</strong>（请求唯一 ID），服务端去重；读工具天然幂等，但也要限制单次返回体量，防止一次拉回 10MB 撑爆上下文。</li>
+        </ol>
+        <div class="goals">
+          <p><strong>工具评审 checklist</strong>（每次新增工具过一遍）：① 描述里有没有「何时不用」？② 参数是否全部必填或有默认？③ 错误返回是否带结构化原因而不是裸异常？④ 写操作有没有幂等键？⑤ 单次返回是否有大小上限？⑥ 有没有对应的单测（用固定入参断言返回结构）？六条全过的工具，上线后返工率会低一个数量级。</p>
+        </div>
 <h2>本章产出：5 个工具的注册表（双语言）</h2>
         <p>以下示例注册 5 个常用工具：搜索、计算、文件读写、HTTP 请求、代码执行。</p>
 

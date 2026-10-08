@@ -12,7 +12,7 @@
   <nav class="sidebar">
     <div class="sidebar__brand">
       <h2>AI Agent<br>权威指南</h2>
-      <span class="sidebar__version">v0.2 · 全 21 章</span>
+      <span class="sidebar__version">v1.2 · 实战强化</span>
     </div>
     <ul class="sidebar__nav">
       <li><a href="./" class="nav-item">序章</a></li>
@@ -111,12 +111,24 @@
         </table>
         <p>三种阅读节奏：<strong>决策者</strong>读 Part 0 + 第 11、14、19、21 章即可建立全局判断；<strong>工程师</strong>按章节顺序通读，代码跟着敲；<strong>研究者</strong>重点读第 5、6、12 章，沿附录 D 的论文线索延伸。</p>
 
+        <h2>30 分钟跑通第一个 Agent</h2>
+        <p>新手最常见的卡点是「环境没配好就放弃了」。这条路径不需要 GPU、不需要训练，只要有任意一家的 API Key（没有的话先用第 14 章会讲的 Ollama 本地模型，完全零成本）：<strong>第 1 步（5 分钟）</strong>跑通第 1 章末尾的最小 ReAct Agent——手写 while 循环 + 两个假工具，看见「思考 → 调工具 → 拿结果 → 再思考」的完整回合；<strong>第 2 步（10 分钟）</strong>把假工具换成真的——接一个搜索 API 或你自己的 HTTP 接口；<strong>第 3 步（10 分钟）</strong>加两层记忆：会话历史（第 3 章）+ 向量检索的长期记忆，问它「我刚才说的项目名是什么」；<strong>第 4 步（5 分钟）</strong>故意传错误参数、断网、超时各一次，看它怎么跌倒，然后对照第 11 章补容错。</p>
+        <div class="goals">
+          <p><strong>岔路口提示</strong>：四步跑完后，如果需求只是「把公司内部流程自动化」且不打算养工程团队，先去 Part 0 看低代码平台（Coze / Dify）的适用边界——先用平台验证价值，再决定要不要用代码重写，是多数团队成本最低的路径。</p>
+        </div>
+
         <h2>参考与致谢</h2>
-        <p>本书在写作中参考了两本优秀的开源书籍，向作者致谢：</p>
-        <ul>
-          <li><a href="https://yeasy.gitbook.io/agentic_ai_guide" target="_blank" rel="noopener">《智能体 AI 权威指南》（yeasy）</a> —— 单体/群体智能、AgentOps、故障模式与反模式的系统梳理，本书第 1、5、6、9、14 章吸收了大量议题。</li>
-          <li><a href="https://bojieli.github.io/ai-agent-book/astro/" target="_blank" rel="noopener">《深入理解 AI Agent》（李博杰）</a> —— 「Agent = LLM + 上下文 + 工具」公式、Model–Harness 结构与上下文工程四操作，本书第 1、2、3 章的核心框架来源于此。</li>
-        </ul>
+        <p>本书在写作中参考了以下优秀的开源书籍与实践，向作者致谢（按贡献方向排列）：</p>
+        <table class="table">
+          <thead><tr><th>资料</th><th>风格</th><th>与本书的互补点</th></tr></thead>
+          <tbody>
+            <tr><td><a href="https://bojieli.github.io/ai-agent-book/astro/" target="_blank" rel="noopener">《深入理解 AI Agent》（李博杰）</a></td><td>深度硬核</td><td>「Agent = LLM + 上下文 + 工具」公式、Model–Harness 结构、上下文工程四操作</td></tr>
+            <tr><td><a href="https://yeasy.gitbook.io/agentic_ai_guide" target="_blank" rel="noopener">《智能体 AI 权威指南》（yeasy）</a></td><td>体系化综述</td><td>单体/群体智能、AgentOps、故障模式与反模式的系统梳理</td></tr>
+            <tr><td><a href="https://didilili.github.io/ai-agents-from-zero/#/" target="_blank" rel="noopener">《AI 智能体实战速成指南》（didilili）</a></td><td>项目实战</td><td>低代码平台全流程、LangChain 全栈、两个企业级实战项目（电商问数 / 深度研搜）</td></tr>
+            <tr><td><a href="https://xwh630.github.io/ai-agent-handbook/" target="_blank" rel="noopener">《AI Agent 实战手册》（xwh630）</a></td><td>框架手册</td><td>九大框架 SDK 横向对比、Docker 快速启动、Token 成本优化专题</td></tr>
+            <tr><td><a href="https://zshyc.github.io/learn-llm-agent/" target="_blank" rel="noopener">《从零学习大模型 &amp; AI Agent》（zshyc）</a></td><td>资源地图</td><td>入门/进阶/生产三级开源项目索引与分级学习路径</td></tr>
+          </tbody>
+        </table>
 
         <h2>发布说明</h2>
         <p>本书以<strong>渐进式发布</strong>的方式进行：先上线前 5 章，随后逐章迭代。你可以通过 GitHub 仓库追踪进度，也可以通过 RSS 订阅更新通知。</p>
