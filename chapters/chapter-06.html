@@ -12,7 +12,7 @@
   <nav class="sidebar">
     <div class="sidebar__brand">
       <h2>AI Agent<br>权威指南</h2>
-      <span class="sidebar__version">v1.2 · 实战强化</span>
+      <span class="sidebar__version">v1.3 · 架构深化</span>
     </div>
         <ul class="sidebar__nav">
       <li><a href="./" class="nav-item">序章</a></li>
@@ -89,6 +89,15 @@
         </ul>
         <p>生产级系统通常 1 个协调型 + N 个专家/执行型，评审型按需插入。角色过多会导致通信 overhead 指数上升，建议初期控制在 3–5 个。</p>
 
+        <h2>6.x 工程视角：Context / State / Tools 三分法</h2>
+        <p>理解多 Agent 工程价值的最短路径，是把三个词说清楚：</p>
+        <ul>
+          <li><strong>Context（上下文）</strong>：模型每次调用能「看到」的输入（system prompt + history + reference）。天然会变长、会漂移、会浪费 Token。</li>
+          <li><strong>State（状态）</strong>：系统保存的结构化进度（通常是 JSON/DB），描述「任务进行到哪了、已确认什么、下一步做什么」。</li>
+          <li><strong>Tools（工具）</strong>：确定性动作（查库/下单/发邮件/运行脚本），应该具备幂等、超时、错误码与可观测。</li>
+        </ul>
+        <p>多智能体的工程本质，就是把<strong>「靠模型自己从上下文里悟出来该做什么」</strong>变成<strong>「靠状态与契约决定下一步、靠工具做确定性动作」</strong>。</p>
+
         <h2>6.2 通信协议</h2>
         <p>Agent 之间的消息必须结构化和可追踪。最小协议包含：</p>
         <ul>
@@ -100,6 +109,28 @@
           <li><code>ttl</code>：超时毫秒数，防止消息堆积。</li>
         </ul>
         <p>通信方式：同步 RPC（适合短链路、低延迟）、异步消息队列（适合长任务、解耦）、事件总线（适合广播、日志）。生产环境优先用消息队列，便于限流、重试、死信处理。</p>
+
+        <h2>6.x 何时升级到多 Agent：四个硬约束</h2>
+        <p>单 Agent 不是万能，但多 Agent 也不是升级的默认选项。出现以下<strong>任意一个硬约束</strong>，再考虑升维：</p>
+        <table class="table">
+          <thead>
+            <tr><th>单 Agent 常见痛点（症状）</th><th>触发的系统约束（原因）</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Prompt 越写越长/越难控</td><td>需要上下文隔离（Context Isolation）</td></tr>
+            <tr><td>一次请求跨多个系统/团队</td><td>需要分工协作（Distributed Ownership）</td></tr>
+            <tr><td>要同时查多个源/跑多个子任务</td><td>需要并行化（Parallel Fan-out）</td></tr>
+            <tr><td>流程分阶段且要可恢复/可审计</td><td>需要状态机（State Machine）</td></tr>
+          </tbody>
+        </table>
+        <p><strong>四个 Yes/No 问题</strong>（只要命中 1 个硬约束，再考虑多智能体）：</p>
+        <ol>
+          <li>你是否必须把某些领域知识与对话历史<strong>隔离开</strong>，否则质量会明显下降？</li>
+          <li>你是否必须把能力拆给不同团队独立维护、独立发布？</li>
+          <li>你是否必须把 2+ 个子任务<strong>并行</strong>执行，才能满足延迟/吞吐？</li>
+          <li>你是否必须把流程做成<strong>可恢复的状态机</strong>（阶段、回滚、审计）？</li>
+        </ol>
+        <p>口诀：<strong>并行找 Router，顺序走 Handoffs，强控用 Subagents，轻量用 Skills。</strong></p>
 
         <h2>6.3 协调模式</h2>
         <table class="table">
@@ -122,12 +153,13 @@
           <li><strong>时间戳优先</strong>：先到先得，后续覆盖。适合缓存、状态更新。</li>
         </ul>
 
-        <h2>6.5 实际模式：管道、辩论、层次</h2>
-        <p>三种工程上最常用的协作模板：</p>
+        <h2>6.5 实际模式：管道、辩论、层次、路由</h2>
+        <p>四种工程上最常用的协作模板，每种都用同一套模板理解：</p>
         <ul>
-          <li><strong>管道（Pipeline）</strong>：Agent A → Agent B → Agent C，串行处理。像流水线，适合有明确顺序的步骤。</li>
-          <li><strong>辩论（Debate）</strong>：多个 Agent 对同一问题轮流发言，最后投票或综合。适合需要多角度审视的场景。</li>
-          <li><strong>层次（Hierarchy）</strong>：顶层 Agent 拆解任务，分配给中层，中层再分配给底层。适合复杂项目。</li>
+          <li><strong>管道（Pipeline）</strong>：Agent A → Agent B → Agent C，串行处理。像流水线，适合有明确顺序的步骤。<strong>核心权衡</strong>：逻辑直观、易调试；但串行延迟累加，不适合并行场景。<strong>你要补的工程能力</strong>：每段输入输出契约、超时与重试、中间结果持久化。</li>
+          <li><strong>辩论（Debate）</strong>：多个 Agent 对同一问题轮流发言，最后投票或综合。适合需要多角度审视的场景。<strong>核心权衡</strong>：视角多元、结论更稳健；但轮次越多 token 消耗越高。<strong>你要补的工程能力</strong>：发言顺序控制、冲突消解策略、收敛判定（何时停止辩论）。</li>
+          <li><strong>层次（Hierarchy）</strong>：顶层 Agent 拆解任务，分配给中层，中层再分配给底层。适合复杂项目。<strong>核心权衡</strong>：职责清晰、可分层治理；但跨层通信慢、状态一致性难保证。<strong>你要补的工程能力</strong>：state schema（phase/facts/artifacts/nextActions）、幂等与重试、阶段级观测与恢复。</li>
+          <li><strong>Router（路由分发 + 汇总合成）</strong>：Router 先分类/意图识别，再并行分发给多个专业 Agent；最后由汇总器合成最终结果。<strong>最佳场景</strong>：企业级知识库、多垂直领域检索、多源比对。<strong>核心权衡</strong>：无状态、一致性好、天然并行；但需要额外路由与合成层，路由误判会放大到最终答案。<strong>你要补的工程能力</strong>：路由置信度与回退策略、并发控制与缓存、合成器（证据对齐/冲突消解）。</li>
         </ul>
 
                 <h2>6.6 社会模拟：斯坦福小镇与生成式智能体</h2>
@@ -164,7 +196,40 @@
           <li><strong>收益 conditions</strong>：任务可清晰分解、子任务间耦合低、需要不同领域视角（写作 + 审校 + 检索）。</li>
           <li><strong>成本信号</strong>：协调消息数随 Agent 数平方增长；单一Agent 两轮 prompt 能解决的事，多 Agent 要 8 次调用。</li>
           <li><strong>判据</strong>：先跑通「单 Agent + 好工具」，把失败 case 按「视角缺失」归类。只有当失败稳定地源于「需要另一种视角」时，才引入第二个 Agent。</li>
+
+        <h2>6.x 决策树：四种模式怎么选</h2>
+        <p>先问一句：<strong>单 Agent + 工具 + 约束化输出 是否已足够？</strong></p>
+        <ul>
+          <li>是 → 先不升维</li>
+          <li>否 → 你的核心矛盾是什么？
+            <ul>
+              <li>要强控制 + 上下文隔离 + 多领域协作 → <strong>Subagents</strong></li>
+              <li>要保持直连交互 + 按需专业化 → <strong>Skills</strong></li>
+              <li>要分阶段顺序推进 + 进度可恢复可审计 → <strong>Handoffs</strong></li>
+              <li>要并行查多源 + 汇总合成 → <strong>Router</strong></li>
+            </ul>
+          </li>
         </ul>
+
+        <h2>6.x 客户端落地要点</h2>
+        <p>多 Agent 不是只跑在后端，前端体验同样关键：</p>
+        <ul>
+          <li><strong>体验预算</strong>：并行/多轮会拉长等待；必须有阶段进度、可取消、可恢复。</li>
+          <li><strong>弱网与失败</strong>：超时/重试/幂等/降级要统一；错误码对齐到 UI 文案与引导。</li>
+          <li><strong>可观测性</strong>：按 phase 记录耗时/失败/重试/取消；能追踪到子智能体/路由分支。</li>
+          <li><strong>成本控制</strong>：对 fan-out 做限流；对 skills 做按需读取与历史裁剪；对 router 做缓存。</li>
+          <li><strong>发布与回滚</strong>：所有分支要可灰度；关键开关尽量收敛到主编排层。</li>
+        </ul>
+
+        <h2>6.x 最小实践清单</h2>
+        <p>交付多 Agent 系统前，确保你已完成：</p>
+        <ol>
+          <li>写清楚「为何升到多智能体」：约束来自哪里（隔离/并行/状态/协作）。</li>
+          <li>为每个分支定义契约：输入/输出/错误码/证据包（日志、埋点、截图）。</li>
+          <li>设计 state（若选 Handoffs）：phase、facts、artifacts、nextActions、retry、audit。</li>
+          <li>做可观测：阶段耗时、失败恢复率、取消率、路由命中率、合成一致性。</li>
+          <li>做回归与兜底：子调用失败如何降级；合成失败如何最小可用输出。</li>
+        </ol>
 
         <div class="experiment">
           <p>动手实验</p>
@@ -397,6 +462,7 @@ async function hierarchyExample(bus: MessageBus): Promise<string[]> {
 <ul>
   <li><a href="https://blog.csdn.net/2401_87746054/article/details/162348611" target="_blank" rel="noopener">[CSDN] 多Agent协作:从单兵作战到军团联动的架构设计 —— Orchestrator 模式与共享记忆区</a></li>
   <li><a href="https://blog.csdn.net/2401_87746054/article/details/162717430" target="_blank" rel="noopener">[CSDN] 让架构图自己说话:如何用一张图讲清多 Agent 系统的信息流动</a></li>
+  <li><a href="https://blog.csdn.net/zinss26914/article/details/157478057" target="_blank" rel="noopener">[CSDN] 多智能体（Multi-Agent）架构选型：四种模式，一张图看懂 —— Subagents/Skills/Handoffs/Router 选型指南与落地清单</a></li>
   <li><a href="https://wangmama.blog.csdn.net/article/details/161765152" target="_blank" rel="noopener">[CSDN] 多 Agent 协作系统架构设计:从编排模式到生产落地 —— 三种主流编排模式对比</a></li>
   <li><a href="https://mcp.csdn.net/6a2e1ec7662f9a54cb7e9a21.html" target="_blank" rel="noopener">[CSDN] 常见多智能体(MAS)架构介绍 —— 主管/黑板/P2P/层级/Swarm 架构对比</a></li>
   <li><a href="https://agent.csdn.net/6a4e790310ee7a33f28a4ebd.html" target="_blank" rel="noopener">[CSDN] 多智能体(Multi-Agent)架构选型:四种模式 —— Subagents/Skills/Handoffs 对比</a></li>
