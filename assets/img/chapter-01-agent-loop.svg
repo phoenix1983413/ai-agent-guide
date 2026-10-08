@@ -69,5 +69,5 @@
 
   <!-- Legend -->
   <rect x="240" y="440" width="240" height="28" rx="6" fill="#F1F5F9"/>
-  <text x="360" y="459" text-anchor="middle" font-family="Inter, -apple-system, sans-serif" font-size="11" fill="#475569">实线 = 主流程 &nbsp;|&nbsp; 虚线 = 与核心交互</text>
+  <text x="360" y="459" text-anchor="middle" font-family="Inter, -apple-system, sans-serif" font-size="11" fill="#475569">实线 = 主流程 &#160;|&#160; 虚线 = 与核心交互</text>
 </svg>
