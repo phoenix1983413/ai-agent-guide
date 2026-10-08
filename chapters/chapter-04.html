@@ -11,7 +11,12 @@
 <body>
   <nav class="sidebar">
     <div class="sidebar__brand">
-      <h2>AI Agent<br>权威指南</h2>
+      
+<figure class="diagram">
+  <img src="../assets/img/chapter-04-tool-lifecycle.svg" alt="工具调用完整生命周期" style="max-width:100%;height:auto;border-radius:8px;border:1px solid #E2E8F0;">
+  <figcaption style="text-align:center;font-size:12px;color:#718096;margin-top:8px;">工具调用完整生命周期</figcaption>
+</figure>
+<h2>AI Agent<br>权威指南</h2>
       <span class="sidebar__version">v1.2 · 实战强化</span>
     </div>
         <ul class="sidebar__nav">
@@ -403,7 +408,12 @@ async function callTool(name: string, args: Record<string, any>): Promise<string
           <a href="chapter-03.html" class="chapter__nav-link">← 第 3 章</a>
           <a href="chapter-05.html" class="chapter__nav-link">第 5 章 规划与推理 →</a>
         </div>
-      </section>
+      <h2>参考资料</h2>
+<ul>
+  <li><a href="https://blog.csdn.net/m0_59235245/article/details/161292145" target="_blank" rel="noopener">[CSDN] Agent 系统全景图 —— 工具层(Tools)与 MCP 服务层的完整架构</a></li>
+  <li><a href="https://yuhaibao.blog.csdn.net/article/details/155415639" target="_blank" rel="noopener">[CSDN] AI Agent技术框架梳理 —— 工具调度层与 Function Calling 实现</a></li>
+</ul>
+</section>
     </article>
   </main>
 

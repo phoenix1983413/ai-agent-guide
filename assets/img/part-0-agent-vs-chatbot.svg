@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 400" width="720" height="400">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#0066CC"/>
+    </marker>
+  </defs>
+  <rect width="720" height="400" fill="#F5F7FA" rx="12"/>
+  
+  <text x="360" y="32" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="18" font-weight="700" fill="#1D1D1F">Agent 与 Chatbot 的本质区别</text>
+  
+  <!-- Chatbot column -->
+  <rect x="40" y="60" width="300" height="280" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="2" rx="10"/>
+  <text x="190" y="90" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="16" font-weight="700" fill="#718096">Chatbot（聊天机器人）</text>
+  
+  <text x="190" y="120" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="13" fill="#4A5568">输入 → 模型 → 输出</text>
+  <line x1="120" y1="130" x2="260" y2="130" stroke="#CBD5E0" stroke-width="2" marker-end="url(#arrow)"/>
+  
+  <rect x="60" y="150" width="260" height="60" fill="#F5F7FA" stroke="#E2E8F0" stroke-width="1" rx="8"/>
+  <text x="190" y="174" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="12" font-weight="700" fill="#718096">被动响应</text>
+  <text x="190" y="192" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="11" fill="#4A5568">用户问一句，答一句</text>
+  <text x="190" y="208" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="11" fill="#4A5568">无自主行动能力</text>
+  
+  <rect x="60" y="220" width="260" height="60" fill="#F5F7FA" stroke="#E2E8F0" stroke-width="1" rx="8"/>
+  <text x="190" y="244" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="12" font-weight="700" fill="#718096">无工具调用</text>
+  <text x="190" y="262" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="11" fill="#4A5568">纯文本生成，不操作外部系统</text>
+  <text x="190" y="278" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="11" fill="#4A5568">无法读写文件、调用 API</text>
+  
+  <text x="190" y="320" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="11" fill="#718096">典型：智能客服 FAQ、问答机器人</text>
+  
+  <!-- VS -->
+  <text x="360" y="200" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="20" font-weight="700" fill="#0066CC">VS</text>
+  
+  <!-- Agent column -->
+  <rect x="380" y="60" width="300" height="280" fill="#FFFFFF" stroke="#0066CC" stroke-width="2" rx="10"/>
+  <text x="530" y="90" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="16" font-weight="700" fill="#0066CC">AI Agent（智能体）</text>
+  
+  <text x="530" y="120" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="13" fill="#4A5568">感知 → 决策 → 行动 → 反思</text>
+  <line x1="460" y1="130" x2="600" y2="130" stroke="#0066CC" stroke-width="2" marker-end="url(#arrow)"/>
+  
+  <rect x="400" y="150" width="260" height="60" fill="#E8F4FD" stroke="#0066CC" stroke-width="1" rx="8"/>
+  <text x="530" y="174" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="12" font-weight="700" fill="#0066CC">主动闭环</text>
+  <text x="530" y="192" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="11" fill="#4A5568">自主感知环境、制定计划</text>
+  <text x="530" y="208" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="11" fill="#4A5568">观察结果并自我修正</text>
+  
+  <rect x="400" y="220" width="260" height="60" fill="#E8F4FD" stroke="#0066CC" stroke-width="1" rx="8"/>
+  <text x="530" y="244" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="12" font-weight="700" fill="#0066CC">工具调用</text>
+  <text x="530" y="262" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="11" fill="#4A5568">调用 API、读写文件、执行代码</text>
+  <text x="530" y="278" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="11" fill="#4A5568">操作外部系统，产生副作用</text>
+  
+  <text x="530" y="320" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="11" fill="#0066CC">典型：研发助手、数据分析 Agent</text>
+  
+  <!-- Key distinction -->
+  <rect x="40" y="360" width="640" height="28" fill="#FFFBEB" stroke="#F59E0B" stroke-width="1.5" rx="6"/>
+  <text x="360" y="379" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="12" fill="#B45309">核心区别：是否有「行动闭环」—— 能根据结果调整下一步，才是 Agent；只有对话没有行动，是 Chatbot。</text>
+</svg>

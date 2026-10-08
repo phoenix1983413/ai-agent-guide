@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 520" width="720" height="520">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#0066CC"/>
+    </marker>
+  </defs>
+  <rect width="720" height="520" fill="#F5F7FA" rx="12"/>
+  
+  <text x="360" y="36" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="20" font-weight="700" fill="#1D1D1F">Agent 四层通用架构</text>
+  
+  <!-- Layer 1: Perception -->
+  <rect x="40" y="60" width="640" height="90" fill="#FFFFFF" stroke="#0066CC" stroke-width="2" rx="10"/>
+  <text x="360" y="88" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="15" font-weight="700" fill="#0066CC">1. 感知层（Perception）</text>
+  <text x="360" y="112" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="13" fill="#4A5568">用户消息、系统状态、工具返回值、环境传感器</text>
+  <text x="360" y="136" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="12" fill="#8B5CF6">输入：多模态信号 → 标准化 Observation</text>
+  
+  <!-- Layer 2: Brain -->
+  <rect x="40" y="170" width="640" height="90" fill="#FFFFFF" stroke="#0066CC" stroke-width="2" rx="10"/>
+  <text x="360" y="198" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="15" font-weight="700" fill="#0066CC">2. 大脑层（Brain / Harness）</text>
+  <text x="360" y="222" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="13" fill="#4A5568">LLM 推理、规划引擎、提示词管理、策略选择</text>
+  <text x="360" y="246" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="12" fill="#8B5CF6">核心：理解意图 → 生成 Action / Thought</text>
+  
+  <!-- Layer 3: Execution -->
+  <rect x="40" y="280" width="640" height="90" fill="#FFFFFF" stroke="#0066CC" stroke-width="2" rx="10"/>
+  <text x="360" y="308" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="15" font-weight="700" fill="#0066CC">3. 执行层（Execution）</text>
+  <text x="360" y="332" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="13" fill="#4A5568">工具调用、API 请求、文件读写、浏览器控制、代码运行</text>
+  <text x="360" y="356" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="12" fill="#8B5CF6">输出：副作用 → 结构化 Observation</text>
+  
+  <!-- Layer 4: Memory -->
+  <rect x="40" y="390" width="640" height="90" fill="#FFFFFF" stroke="#0066CC" stroke-width="2" rx="10"/>
+  <text x="360" y="418" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="15" font-weight="700" fill="#0066CC">4. 记忆层（Memory）</text>
+  <text x="360" y="442" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="13" fill="#4A5568">工作记忆（Redis / Context）、长期记忆（向量库 / 知识图谱）</text>
+  <text x="360" y="466" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="12" fill="#8B5CF6">跨轮次保持：会话状态 + 历史检索 + 摘要压缩</text>
+  
+  <!-- Arrows between layers -->
+  <line x1="360" y1="150" x2="360" y2="170" stroke="#0066CC" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="360" y1="260" x2="360" y2="280" stroke="#0066CC" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="360" y1="370" x2="360" y2="390" stroke="#0066CC" stroke-width="2" marker-end="url(#arrow)"/>
+  
+  <!-- Feedback loop annotation -->
+  <path d="M 620 410 L 620 480 L 100 480 L 100 390" fill="none" stroke="#E74C3C" stroke-width="1.5" stroke-dasharray="4,4" marker-end="url(#arrow)"/>
+  <text x="620" y="475" text-anchor="end" font-family="Inter, Noto Sans SC" font-size="11" fill="#E74C3C">反馈回路：观察结果 → 记忆更新 → 影响下一轮决策</text>
+</svg>

@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 420" width="720" height="420">
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#0066CC"/>
+    </marker>
+  </defs>
+  <rect width="720" height="420" fill="#F5F7FA" rx="12"/>
+  
+  <!-- Title -->
+  <text x="360" y="36" text-anchor="middle" font-family="Inter, Noto Sans SC, PingFang SC" font-size="20" font-weight="700" fill="#1D1D1F">Agent 能力光谱：从工具调用到完全自主</text>
+  
+  <!-- L1 -->
+  <rect x="40" y="70" width="160" height="110" fill="#FFFFFF" stroke="#0066CC" stroke-width="2" rx="10"/>
+  <text x="120" y="100" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="16" font-weight="700" fill="#1D1D1F">L1 工具调用</text>
+  <text x="120" y="126" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="13" fill="#4A5568">单步：意图识别 → 调工具 → 返回</text>
+  <text x="120" y="150" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="12" fill="#34C759">复杂度：低　风险：低</text>
+  <text x="120" y="170" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="12" fill="#8B5CF6">客服查询 / 表单填写</text>
+  
+  <!-- L2 -->
+  <rect x="280" y="70" width="160" height="110" fill="#FFFFFF" stroke="#0066CC" stroke-width="2" rx="10"/>
+  <text x="360" y="100" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="16" font-weight="700" fill="#1D1D1F">L2 任务规划</text>
+  <text x="360" y="126" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="13" fill="#4A5568">多步：拆解任务、按序执行、失败重试</text>
+  <text x="360" y="150" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="12" fill="#34C759">复杂度：中　风险：中</text>
+  <text x="360" y="170" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="12" fill="#8B5CF6">数据分析 / 调研报告</text>
+  
+  <!-- L3 -->
+  <rect x="520" y="70" width="160" height="110" fill="#FFFFFF" stroke="#0066CC" stroke-width="2" rx="10"/>
+  <text x="600" y="100" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="16" font-weight="700" fill="#1D1D1F">L3 多 Agent 协作</text>
+  <text x="600" y="126" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="13" fill="#4A5568">多角色分工、互相评审、长时运行</text>
+  <text x="600" y="150" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="12" fill="#34C759">复杂度：高　风险：高</text>
+  <text x="600" y="170" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="12" fill="#8B5CF6">研发团队 / 自动化运营</text>
+  
+  <!-- Arrows between levels -->
+  <line x1="200" y1="125" x2="280" y2="125" stroke="#0066CC" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <line x1="440" y1="125" x2="520" y2="125" stroke="#0066CC" stroke-width="2" marker-end="url(#arrowhead)"/>
+  
+  <!-- Key insight box -->
+  <rect x="40" y="210" width="640" height="90" fill="#E8F4FD" stroke="#0066CC" stroke-width="1.5" rx="10"/>
+  <text x="360" y="238" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="14" font-weight="700" fill="#0066CC">关键判断原则</text>
+  <text x="360" y="262" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="13" fill="#1D1D1F">第一个项目永远从 L1 起步，验证稳定后再上 L2，L3 等前三章技术债还清再说。</text>
+  <text x="360" y="286" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="13" fill="#E74C3C">跳级是 Agent 项目失败的头号原因。</text>
+  
+  <!-- Decision criteria table header -->
+  <rect x="40" y="330" width="640" height="30" fill="#0066CC" rx="6"/>
+  <text x="120" y="349" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="13" font-weight="700" fill="#FFFFFF">判断维度</text>
+  <text x="280" y="349" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="13" font-weight="700" fill="#FFFFFF">L1 工具调用</text>
+  <text x="440" y="349" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="13" font-weight="700" fill="#FFFFFF">L2 任务规划</text>
+  <text x="600" y="349" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="13" font-weight="700" fill="#FFFFFF">L3 多 Agent</text>
+  
+  <!-- Decision criteria rows -->
+  <rect x="40" y="360" width="640" height="28" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1"/>
+  <text x="120" y="378" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="12" fill="#1D1D1F">自主程度</text>
+  <text x="280" y="378" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="12" fill="#4A5568">单步响应</text>
+  <text x="440" y="378" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="12" fill="#4A5568">多步规划</text>
+  <text x="600" y="378" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="12" fill="#4A5568">群体协作</text>
+  
+  <rect x="40" y="388" width="640" height="28" fill="#F5F7FA" stroke="#E2E8F0" stroke-width="1"/>
+  <text x="120" y="406" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="12" fill="#1D1D1F">所需团队</text>
+  <text x="280" y="406" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="12" fill="#4A5568">1 人</text>
+  <text x="440" y="406" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="12" fill="#4A5568">2-3 人</text>
+    <text x="600" y="406" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="12" fill="#4A5568">5 人+</text>
+</svg>

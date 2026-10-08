@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 500" width="720" height="500">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#0066CC"/>
+    </marker>
+  </defs>
+  <rect width="720" height="500" fill="#F5F7FA" rx="12"/>
+  
+  <text x="360" y="32" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="18" font-weight="700" fill="#1D1D1F">Agent 记忆系统三层架构</text>
+  
+  <!-- Short-term Memory -->
+  <rect x="40" y="60" width="200" height="140" fill="#FFFFFF" stroke="#0066CC" stroke-width="2" rx="10"/>
+  <text x="140" y="86" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="14" font-weight="700" fill="#0066CC">短时记忆</text>
+  <text x="140" y="108" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="12" fill="#4A5568">LLM Context Window</text>
+  <text x="140" y="128" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="11" fill="#718096">4K – 128K tokens</text>
+  <text x="140" y="150" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="11" fill="#8B5CF6">当前会话上下文</text>
+  <text x="140" y="168" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="11" fill="#8B5CF6">最近 N 轮对话</text>
+  <text x="140" y="186" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="11" fill="#E74C3C">超出即截断</text>
+  
+  <!-- Working Memory -->
+  <rect x="260" y="60" width="200" height="140" fill="#FFFFFF" stroke="#0066CC" stroke-width="2" rx="10"/>
+  <text x="360" y="86" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="14" font-weight="700" fill="#0066CC">工作记忆</text>
+  <text x="360" y="108" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="12" fill="#4A5568">Redis / 内存缓存</text>
+  <text x="360" y="128" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="11" fill="#718096">会话级状态</text>
+  <text x="360" y="150" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="11" fill="#8B5CF6">任务状态、用户偏好</text>
+  <text x="360" y="168" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="11" fill="#8B5CF6">活跃任务上下文</text>
+  <text x="360" y="186" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="11" fill="#34C759">毫秒级读写</text>
+  
+  <!-- Long-term Memory -->
+  <rect x="480" y="60" width="200" height="140" fill="#FFFFFF" stroke="#0066CC" stroke-width="2" rx="10"/>
+  <text x="580" y="86" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="14" font-weight="700" fill="#0066CC">长期记忆</text>
+  <text x="580" y="108" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="12" fill="#4A5568">向量数据库</text>
+  <text x="580" y="128" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="11" fill="#718096">永久存储</text>
+  <text x="580" y="150" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="11" fill="#8B5CF6">历史对话、知识沉淀</text>
+  <text x="580" y="168" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="11" fill="#8B5CF6">语义检索 (Top-K)</text>
+  <text x="580" y="186" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="11" fill="#F59E0B">秒级检索</text>
+  
+  <!-- Arrows between layers -->
+  <line x1="240" y1="110" x2="260" y2="110" stroke="#0066CC" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="460" y1="110" x2="480" y2="110" stroke="#0066CC" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="250" y="100" font-family="Inter, Noto Sans SC" font-size="10" fill="#0066CC">滑动</text>
+  <text x="470" y="100" font-family="Inter, Noto Sans SC" font-size="10" fill="#0066CC">巩固</text>
+  
+  <!-- Retrieval flow -->
+  <rect x="40" y="240" width="640" height="80" fill="#E8F4FD" stroke="#0066CC" stroke-width="1.5" rx="10"/>
+  <text x="360" y="266" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="13" font-weight="700" fill="#0066CC">检索流程：三层并行召回 + 融合排序</text>
+  <text x="360" y="290" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="12" fill="#4A5568">当前查询 → 同时从三层召回 → 按相似度 + 新鲜度加权 → 组装上下文 → LLM 推理</text>
+  <text x="360" y="310" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="11" fill="#718096">关键：不是串行，而是并行！单纯依赖任何一层都会出问题</text>
+  
+  <!-- Memory update -->
+  <line x1="140" y1="200" x2="140" y2="240" stroke="#0066CC" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="360" y1="200" x2="360" y2="240" stroke="#0066CC" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="580" y1="200" x2="580" y2="240" stroke="#0066CC" stroke-width="1.5" marker-end="url(#arrow)"/>
+  
+  <!-- Storage tech -->
+  <text x="360" y="360" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="14" font-weight="700" fill="#1D1D1F">各层存储技术选型</text>
+  
+  <rect x="40" y="370" width="200" height="100" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1" rx="8"/>
+  <text x="140" y="394" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="12" font-weight="700" fill="#1D1D1F">短时记忆</text>
+  <text x="140" y="414" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="11" fill="#4A5568">LLM 原生上下文</text>
+  <text x="140" y="432" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="11" fill="#4A5568">无需额外存储</text>
+  <text x="140" y="450" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="11" fill="#718096">零延迟，免费</text>
+  
+  <rect x="260" y="370" width="200" height="100" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1" rx="8"/>
+  <text x="360" y="394" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="12" font-weight="700" fill="#1D1D1F">工作记忆</text>
+  <text x="360" y="414" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="11" fill="#4A5568">Redis / Memcached</text>
+  <text x="360" y="432" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="11" fill="#4A5568">内存数据库</text>
+  <text x="360" y="450" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="11" fill="#718096">毫秒级，结构化</text>
+  
+  <rect x="480" y="370" width="200" height="100" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1" rx="8"/>
+  <text x="580" y="394" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="12" font-weight="700" fill="#1D1D1F">长期记忆</text>
+  <text x="580" y="414" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="11" fill="#4A5568">Pinecone / Qdrant</text>
+  <text x="580" y="432" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="11" fill="#4A5568">Weaviate / Milvus</text>
+  <text x="580" y="450" text-anchor="middle" font-family="Inter, Noto Sans SC" font-size="11" fill="#718096">语义检索，TB 级</text>
+</svg>
